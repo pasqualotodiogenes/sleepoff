@@ -5,6 +5,8 @@
 - CI verde em `main`
 - `README.md` e instalacao alinhados com o estado real do produto
 - `LICENSE`, installer e assets de release revisados
+- repositório publico em `github.com/pasqualotodiogenes/sleepoff`
+- `Settings > Actions > General` com permissao de escrita em `contents`
 
 ## Release flow
 
@@ -14,6 +16,15 @@ go vet ./...
 git tag v1.0.0
 git push origin main --tags
 ```
+
+## First release notes
+
+Antes da primeira tag, o link `releases/latest` ainda vai aparecer vazio ou redirecionar para a lista de releases sem assets.
+Isso e esperado. A pagina so passa a funcionar para usuario final depois que a primeira tag `v*` publica:
+
+- `sleepoff-setup.exe`
+- `sleepoff_windows_amd64.zip`
+- `checksums.txt`
 
 ## What the release workflow does
 

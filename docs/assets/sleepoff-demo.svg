@@ -16,7 +16,7 @@
   <text x="56" y="78" fill="#A855F7" font-family="Consolas, 'Courier New', monospace" font-size="30" font-weight="700">sleepoff</text>
   <text x="56" y="112" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">Desligamento programado</text>
 
-  <text x="56" y="178" fill="#A78BFA" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="700">00:08</text>
+  <text x="56" y="178" fill="#A78BFA" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="700">04:08</text>
 
   <rect x="56" y="200" width="386" height="18" fill="url(#dots)"/>
   <rect x="56" y="200" width="70" height="18" fill="#7C5CE6"/>
@@ -26,10 +26,10 @@
   <rect x="54" y="255" width="2" height="16" fill="#22C55E"/>
   <text x="72" y="270" fill="#22C55E" font-family="Consolas, 'Courier New', monospace" font-size="24" font-weight="700">Rodando</text>
 
-  <text x="56" y="305" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">Inicio: 11:37  •  Fim: 11:37</text>
+  <text x="56" y="305" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">Inicio: 11:37  •  Fim: 11:42</text>
 
   <line x1="56" y1="340.5" x2="270" y2="340.5" stroke="#607090"/>
-  <text x="56" y="370" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">11:37:06 Timer: 10s</text>
+  <text x="56" y="370" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">11:37:52 Timer: 5m</text>
 
   <text x="56" y="424" fill="#8FA0C0" font-family="Consolas, 'Courier New', monospace" font-size="18">[p] pausar  [c] cancelar  [+/-] ajustar tempo</text>
 </svg>
