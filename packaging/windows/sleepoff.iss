@@ -61,38 +61,66 @@ end;
 
 function PathContainsDir(const PathValue, Dir: string): Boolean;
 var
-  Parts: TArrayOfString;
-  I: Integer;
+  Remaining: string;
+  Item: string;
+  DelimPos: Integer;
 begin
   Result := False;
-  Parts := SplitString(PathValue, ';');
-  for I := 0 to GetArrayLength(Parts) - 1 do
+  Remaining := PathValue;
+
+  while True do
   begin
-    if CompareText(NormalizePath(Parts[I]), NormalizePath(Dir)) = 0 then
+    DelimPos := Pos(';', Remaining);
+    if DelimPos = 0 then
+      Item := Remaining
+    else
+    begin
+      Item := Copy(Remaining, 1, DelimPos - 1);
+      Delete(Remaining, 1, DelimPos);
+    end;
+
+    Item := Trim(Item);
+    if (Item <> '') and (CompareText(NormalizePath(Item), NormalizePath(Dir)) = 0) then
     begin
       Result := True;
       Exit;
     end;
+
+    if DelimPos = 0 then
+      Break;
   end;
 end;
 
 function RemovePathEntry(const PathValue, Dir: string): string;
 var
-  Parts: TArrayOfString;
-  I: Integer;
+  Remaining: string;
   Item: string;
+  DelimPos: Integer;
 begin
   Result := '';
-  Parts := SplitString(PathValue, ';');
-  for I := 0 to GetArrayLength(Parts) - 1 do
+  Remaining := PathValue;
+
+  while True do
   begin
-    Item := Trim(Parts[I]);
+    DelimPos := Pos(';', Remaining);
+    if DelimPos = 0 then
+      Item := Remaining
+    else
+    begin
+      Item := Copy(Remaining, 1, DelimPos - 1);
+      Delete(Remaining, 1, DelimPos);
+    end;
+
+    Item := Trim(Item);
     if (Item <> '') and (CompareText(NormalizePath(Item), NormalizePath(Dir)) <> 0) then
     begin
       if Result <> '' then
         Result := Result + ';';
       Result := Result + Item;
     end;
+
+    if DelimPos = 0 then
+      Break;
   end;
 end;
 
