@@ -1,0 +1,38 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": {
+      "Major": {{MAJOR}},
+      "Minor": {{MINOR}},
+      "Patch": {{PATCH}},
+      "Build": 0
+    },
+    "ProductVersion": {
+      "Major": {{MAJOR}},
+      "Minor": {{MINOR}},
+      "Patch": {{PATCH}},
+      "Build": 0
+    },
+    "FileFlagsMask": "3f",
+    "FileFlags": "00",
+    "FileOS": "040004",
+    "FileType": "01",
+    "FileSubtype": "00"
+  },
+  "StringFileInfo": {
+    "Comments": "sleepoff Windows release binary",
+    "CompanyName": "Diogenes Pasqualoto",
+    "FileDescription": "sleepoff",
+    "FileVersion": "{{VERSION}}",
+    "InternalName": "sleepoff",
+    "LegalCopyright": "Copyright (c) 2026 Diogenes Pasqualoto",
+    "OriginalFilename": "sleepoff.exe",
+    "ProductName": "sleepoff",
+    "ProductVersion": "{{VERSION}}"
+  },
+  "VarFileInfo": {
+    "Translation": {
+      "LangID": "0409",
+      "CharsetID": "04B0"
+    }
+  }
+}

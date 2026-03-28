@@ -1,0 +1,9 @@
+<svg width="122" height="28" viewBox="0 0 122 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="122" height="28" rx="14" fill="#0F172A"/>
+  <rect x="0.5" y="0.5" width="121" height="27" rx="13.5" stroke="#1E293B"/>
+  <path d="M16 8L21 7V13H16V8Z" fill="#06B6D4"/>
+  <path d="M22 6.8L29 6V13H22V6.8Z" fill="#06B6D4"/>
+  <path d="M16 14H21V20L16 19.2V14Z" fill="#06B6D4"/>
+  <path d="M22 14H29V21L22 20.2V14Z" fill="#06B6D4"/>
+  <text x="38" y="18" fill="#E2E8F0" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Windows</text>
+</svg>

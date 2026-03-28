@@ -1,0 +1,47 @@
+version: 2
+
+project_name: sleepoff
+
+builds:
+  - id: sleepoff
+    main: .
+    binary: sleepoff
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w
+      - -X github.com/pasqualotodiogenes/sleepoff/internal/buildinfo.Version={{ .Version }}
+      - -X github.com/pasqualotodiogenes/sleepoff/internal/buildinfo.Commit={{ .Commit }}
+      - -X github.com/pasqualotodiogenes/sleepoff/internal/buildinfo.Date={{ .Date }}
+
+archives:
+  - id: portable
+    ids:
+      - sleepoff
+    formats:
+      - zip
+    name_template: "sleepoff_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+      - "^Merge"
+
+release:
+  github:
+    owner: pasqualotodiogenes
+    name: sleepoff
