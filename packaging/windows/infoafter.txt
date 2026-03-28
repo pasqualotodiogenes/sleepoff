@@ -1,0 +1,16 @@
+sleepoff was installed successfully.
+
+What happens now:
+- The installer can launch sleepoff immediately on the finish screen.
+- New PowerShell and CMD windows will recognize the "sleepoff" command automatically.
+- If you already had a terminal open before installing, close it and open a new one.
+
+Ways to use sleepoff:
+- Command line: sleepoff 90s
+- Safe test: sleepoff 90s --dry-run
+- Interactive mode: launch sleepoff with no arguments
+
+Shortcuts:
+- A Start Menu shortcut is created by default.
+- You can optionally create a Desktop shortcut during setup.
+- After the first launch, you can pin sleepoff to the taskbar or Start menu from Windows.

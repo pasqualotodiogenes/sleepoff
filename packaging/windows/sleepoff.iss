@@ -33,10 +33,12 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesEnvironment=yes
+InfoAfterFile={#SourcePath}\infoafter.txt
 
 [Tasks]
 Name: addtopath; Description: "Add sleepoff to your PATH"; GroupDescription: "Command line integration:"; Flags: checkedonce
-Name: startmenuicon; Description: "Create a Start Menu shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
+Name: startmenuicon; Description: "Create a Start Menu shortcut"; GroupDescription: "Shortcuts:"; Flags: checkedonce
+Name: desktopicon; Description: "Create a Desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
 [Files]
 Source: "{#MyAppExe}"; DestDir: "{app}"; DestName: "sleepoff.exe"; Flags: ignoreversion
@@ -45,9 +47,10 @@ Source: "{#SourcePath}\..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{userprograms}\sleepoff"; Filename: "{app}\sleepoff.exe"; WorkingDir: "{app}"; Tasks: startmenuicon
+Name: "{userdesktop}\sleepoff"; Filename: "{app}\sleepoff.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\sleepoff.exe"; Description: "Launch sleepoff now"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{app}\sleepoff.exe"; Description: "Launch sleepoff now"; Flags: nowait postinstall skipifsilent
 
 [Code]
 const

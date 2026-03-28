@@ -34,8 +34,12 @@ O instalador:
 - copia `sleepoff.exe` para `%LocalAppData%\Programs\sleepoff\`
 - adiciona esse diretorio ao `PATH` do usuario
 - deixa o comando `sleepoff` disponivel no PowerShell e no CMD de qualquer pasta
+- cria atalho no menu Iniciar por padrao
+- pode abrir o app automaticamente ao finalizar a instalacao
+- pode criar atalho na area de trabalho durante o setup
 
 Depois de instalar, feche e abra o terminal novamente.
+Se preferir, abra o app pelo atalho e fixe na barra de tarefas depois do primeiro launch.
 
 ### Zip portable
 
