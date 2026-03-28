@@ -19,7 +19,7 @@
 
 ## <img src="docs/assets/icon-demo.svg" alt="" width="18" height="18"> Demo
 
-![Preview do sleepoff](docs/assets/sleepoff-demo.svg)
+![Preview do sleepoff](docs/assets/sleepoff-demo-5m.svg)
 
 ## <img src="docs/assets/icon-install.svg" alt="" width="18" height="18"> Instalacao
 
