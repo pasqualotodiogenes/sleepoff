@@ -34,6 +34,30 @@ type LogEntry struct {
 	Level   string // "INFO", "WARN", "CRIT"
 }
 
+// DesktopState representa um snapshot resumido para integrações externas
+// como tray icon e notificações do Windows.
+type DesktopState struct {
+	State          State
+	TotalDuration  time.Duration
+	Remaining      time.Duration
+	StartTime      time.Time
+	FinishTime     time.Time
+	Paused         bool
+	PanicCountdown int
+	CancelPending  bool
+	DryRun         bool
+	ShutdownError  string
+}
+
+// DesktopHooks permite integrar a state machine com recursos nativos.
+type DesktopHooks interface {
+	UpdateDesktop(DesktopState)
+}
+
+// Mensagens externas enviadas por integrações como tray.
+type TogglePauseMsg struct{}
+type ForceCancelMsg struct{}
+
 // --- ITEM DO MENU ---
 type menuItem struct {
 	title, desc string
@@ -108,6 +132,9 @@ type Model struct {
 	// Confirmação de cancelamento (2x para sair)
 	CancelPending     bool      // Se já pressionou uma vez
 	CancelPendingTime time.Time // Quando pressionou pela primeira vez
+
+	Desktop            DesktopHooks
+	lastDesktopStateID string
 }
 
 // --- CONSTRUCTOR ---
@@ -200,4 +227,44 @@ func (m *Model) AddLog(msg, level string) {
 	if len(m.Logs) > 5 {
 		m.Logs = m.Logs[1:]
 	}
+}
+
+func (m Model) desktopState() DesktopState {
+	return DesktopState{
+		State:          m.State,
+		TotalDuration:  m.TotalDuration,
+		Remaining:      m.Remaining,
+		StartTime:      m.StartTime,
+		FinishTime:     m.FinishTime,
+		Paused:         m.Paused,
+		PanicCountdown: m.PanicCountdown,
+		CancelPending:  m.CancelPending,
+		DryRun:         m.DryRun,
+		ShutdownError:  m.ShutdownError,
+	}
+}
+
+func (m *Model) syncDesktop(force bool) {
+	if m.Desktop == nil {
+		return
+	}
+
+	state := m.desktopState()
+	stateID := fmt.Sprintf(
+		"%d|%t|%d|%d|%t|%t|%s",
+		state.State,
+		state.Paused,
+		int(state.Remaining.Round(time.Second).Seconds()),
+		state.PanicCountdown,
+		state.CancelPending,
+		state.DryRun,
+		state.ShutdownError,
+	)
+
+	if !force && stateID == m.lastDesktopStateID {
+		return
+	}
+
+	m.lastDesktopStateID = stateID
+	m.Desktop.UpdateDesktop(state)
 }

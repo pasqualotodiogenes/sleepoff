@@ -1,0 +1,22 @@
+changelog:
+  categories:
+    - title: Installer and Windows UX
+      labels:
+        - installer
+        - windows
+        - ux
+    - title: Timer behavior
+      labels:
+        - timer
+        - cli
+    - title: Fixes
+      labels:
+        - fix
+        - bug
+    - title: Maintenance
+      labels:
+        - chore
+        - ci
+  exclude:
+    labels:
+      - skip-changelog

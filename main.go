@@ -9,6 +9,8 @@ import (
 
 	"github.com/pasqualotodiogenes/sleepoff/internal/buildinfo"
 	"github.com/pasqualotodiogenes/sleepoff/internal/model"
+	"github.com/pasqualotodiogenes/sleepoff/internal/update"
+	"github.com/pasqualotodiogenes/sleepoff/internal/windowsux"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -145,6 +147,58 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		if err := windowsux.ApplyProcessIdentity(); err != nil {
+			fmt.Println(dimStyle.Render("   ℹ Integração Windows parcial: " + err.Error()))
+			fmt.Println()
+		}
+
+		instanceLock, alreadyRunning, err := windowsux.AcquireSingleInstance()
+		if err != nil {
+			fmt.Println(errorStyle.Render("   ✗ Não foi possível iniciar o app: " + err.Error()))
+			os.Exit(1)
+		}
+		if alreadyRunning {
+			windowsux.ShowAlreadyRunningMessage()
+			return
+		}
+		defer instanceLock.Release()
+
+		runUpdateCheck := func(force bool) bool {
+			result, err := update.CheckAndPrepare(force)
+			if err != nil {
+				if force {
+					windowsux.ShowInfo("Falha ao verificar atualização", err.Error())
+				}
+				return false
+			}
+			if !result.UpdateAvailable {
+				if force && result.Checked {
+					windowsux.ShowInfo("sleepoff", "Você já está na versão mais recente.")
+				}
+				return false
+			}
+
+			windowsux.ShowUpdateInstallingMessage(result.LatestVersion)
+			if err := update.LaunchInstaller(result.InstallerPath); err != nil {
+				if !force {
+					fmt.Println(dimStyle.Render("   ℹ Falha ao abrir instalador automático: " + err.Error()))
+					fmt.Println()
+					return false
+				}
+				windowsux.ShowInfo("Falha ao abrir instalador", err.Error())
+				return false
+			}
+			if !force {
+				instanceLock.Release()
+			}
+			return true
+		}
+
+		// Atualização automática semanal só no launch interativo.
+		if len(args) == 0 && runUpdateCheck(false) {
+			return
+		}
+
 		var m model.Model
 
 		if len(args) == 1 {
@@ -177,7 +231,15 @@ var rootCmd = &cobra.Command{
 			m.DryRun = dryRun
 		}
 
+		desktop := windowsux.NewIntegration(func() {
+			runUpdateCheck(true)
+		})
+		m.Desktop = desktop
+
 		p := tea.NewProgram(m, tea.WithAltScreen())
+		desktop.AttachProgram(p)
+		defer desktop.Close()
+
 		finalModel, err := p.Run()
 		if err != nil {
 			fmt.Println(errorStyle.Render("   ✗ Erro: " + err.Error()))

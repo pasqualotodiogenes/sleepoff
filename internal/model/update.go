@@ -15,14 +15,42 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case TogglePauseMsg:
+		if m.State != StateRunning {
+			return m, nil
+		}
+		m.Paused = !m.Paused
+		if m.Paused {
+			m.Remaining = time.Until(m.FinishTime)
+			if m.Remaining < 0 {
+				m.Remaining = 0
+			}
+			m.AddLog("Pausado", "WARN")
+		} else {
+			m.AddLog("Retomado", "INFO")
+			m.FinishTime = time.Now().Add(m.Remaining)
+		}
+		m.syncDesktop(true)
+		return m, nil
+	case ForceCancelMsg:
+		if m.State != StateRunning && m.State != StateConfirmation {
+			return m, nil
+		}
+		m.AddLog("Cancelado", "CRIT")
+		m.State = StateRunning
+		m.Quitting = true
+		m.syncDesktop(true)
+		return m, tea.Quit
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			m.Quitting = true
+			m.syncDesktop(true)
 			return m, tea.Quit
 		}
 		// Q para sair no menu
 		if m.State == StateMenu && msg.String() == "q" {
 			m.Quitting = true
+			m.syncDesktop(true)
 			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
@@ -42,6 +70,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.List.SetHeight(availableHeight)
 		m.Progress.Width = availableWidth - 6
 
+		m.syncDesktop(false)
 		return m, tea.ClearScreen
 
 	case TickMsg:
@@ -54,8 +83,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.SplashFrame >= 100 {
 				// Transição para menu
 				m.State = StateMenu
+				m.syncDesktop(true)
 				return m, nil
 			}
+			m.syncDesktop(false)
 			return m, tickCmd()
 		}
 
@@ -75,6 +106,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.PanicDeadline = time.Now().Add(10 * time.Second)
 					m.AddLog("Tempo esgotado!", "CRIT")
 					shutdown.Beep(800, 300)
+					m.syncDesktop(true)
 					return m, tickCmd()
 				}
 			}
@@ -93,6 +125,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.State = StateDone
 				m.Quitting = true
+				m.syncDesktop(true)
 				return m, tea.Quit
 			}
 
@@ -108,21 +141,43 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		m.syncDesktop(false)
 		return m, tickCmd()
 	}
 
 	// State Machine
 	switch m.State {
 	case StateMenu:
-		return m.updateMenu(msg)
+		next, cmd := m.updateMenu(msg)
+		if typed, ok := next.(Model); ok {
+			typed.syncDesktop(false)
+			return typed, cmd
+		}
+		return next, cmd
 	case StateCustomInput:
-		return m.updateCustomInput(msg)
+		next, cmd := m.updateCustomInput(msg)
+		if typed, ok := next.(Model); ok {
+			typed.syncDesktop(false)
+			return typed, cmd
+		}
+		return next, cmd
 	case StateRunning:
-		return m.updateRunning(msg)
+		next, cmd := m.updateRunning(msg)
+		if typed, ok := next.(Model); ok {
+			typed.syncDesktop(false)
+			return typed, cmd
+		}
+		return next, cmd
 	case StateConfirmation:
-		return m.updateConfirmation(msg)
+		next, cmd := m.updateConfirmation(msg)
+		if typed, ok := next.(Model); ok {
+			typed.syncDesktop(false)
+			return typed, cmd
+		}
+		return next, cmd
 	}
 
+	m.syncDesktop(false)
 	return m, cmd
 }
 
@@ -136,6 +191,7 @@ func (m Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				if i.minutes == -1 {
 					m.State = StateCustomInput
+					m.syncDesktop(true)
 					return m, nil
 				}
 				return m.startTimer(i.minutes)
@@ -159,6 +215,7 @@ func (m Model) updateCustomInput(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "esc":
 			m.State = StateMenu
+			m.syncDesktop(true)
 			return m, nil
 		}
 	}
@@ -189,6 +246,7 @@ func (m Model) updateRunning(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// Segunda vez - cancela de verdade
 				m.AddLog("Cancelado", "CRIT")
 				m.Quitting = true
+				m.syncDesktop(true)
 				return m, tea.Quit
 			}
 			// Primeira vez - só marca (aviso visual aparece na view)
@@ -218,6 +276,7 @@ func (m Model) updateRunning(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	}
+	m.syncDesktop(true)
 	return m, nil
 }
 
@@ -229,6 +288,7 @@ func (m Model) updateConfirmation(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.AddLog("Cancelado!", "INFO")
 			m.State = StateRunning
 			m.Quitting = true
+			m.syncDesktop(true)
 			return m, tea.Quit
 		}
 	}
@@ -247,5 +307,6 @@ func (m Model) startTimer(minutes int) (Model, tea.Cmd) {
 	m.PanicDeadline = time.Time{}
 	m.ShutdownError = ""
 	m.AddLog(fmt.Sprintf("Timer: %d min", minutes), "INFO")
+	m.syncDesktop(true)
 	return m, tickCmd()
 }

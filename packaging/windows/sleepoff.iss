@@ -33,6 +33,9 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesEnvironment=yes
+AppMutex=sleepoff-single-instance
+CloseApplications=yes
+RestartApplications=yes
 InfoAfterFile={#SourcePath}\infoafter.txt
 
 [Tasks]

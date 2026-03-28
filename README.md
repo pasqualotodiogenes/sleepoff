@@ -27,7 +27,8 @@
 
 Baixe o arquivo `sleepoff-setup.exe` na pagina de releases:
 
-- [Latest release](https://github.com/pasqualotodiogenes/sleepoff/releases/latest)
+- [Download do instalador](https://github.com/pasqualotodiogenes/sleepoff/releases/latest/download/sleepoff-setup.exe)
+- [Ver latest release](https://github.com/pasqualotodiogenes/sleepoff/releases/latest)
 
 O instalador:
 
@@ -40,10 +41,13 @@ O instalador:
 
 Depois de instalar, feche e abra o terminal novamente.
 Se preferir, abra o app pelo atalho e fixe na barra de tarefas depois do primeiro launch.
+Quando o app instalado for aberto no modo interativo, ele verifica atualizacoes no GitHub no maximo uma vez por semana.
 
 ### Zip portable
 
 Baixe `sleepoff_windows_amd64.zip`, extraia o conteudo e use um destes fluxos:
+
+- [Download do zip portable](https://github.com/pasqualotodiogenes/sleepoff/releases/latest/download/sleepoff_windows_amd64.zip)
 
 - execucao local: `.\sleepoff.exe 90s`
 - execucao global: adicione a pasta extraida ao `PATH`
