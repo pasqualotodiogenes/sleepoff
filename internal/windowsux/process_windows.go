@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	AppUserModelID          = "pasqualotodiogenes.sleepoff"
-	SingleInstanceMutexName = "sleepoff-single-instance"
+	AppUserModelID = "pasqualotodiogenes.sleepoff"
 )
 
 var (
@@ -19,15 +18,9 @@ var (
 	kernel32                     = syscall.NewLazyDLL("kernel32.dll")
 	shell32                      = syscall.NewLazyDLL("shell32.dll")
 	messageBoxW                  = user32.NewProc("MessageBoxW")
-	createMutexW                 = kernel32.NewProc("CreateMutexW")
-	closeHandle                  = kernel32.NewProc("CloseHandle")
 	registerApplicationRestart   = kernel32.NewProc("RegisterApplicationRestart")
 	setCurrentProcessAppModelIDW = shell32.NewProc("SetCurrentProcessExplicitAppUserModelID")
 )
-
-type SingleInstanceLock struct {
-	handle uintptr
-}
 
 func ApplyProcessIdentity() error {
 	appID, err := syscall.UTF16PtrFromString(AppUserModelID)
@@ -44,33 +37,6 @@ func ApplyProcessIdentity() error {
 	}
 
 	return nil
-}
-
-func AcquireSingleInstance() (*SingleInstanceLock, bool, error) {
-	name, err := syscall.UTF16PtrFromString(SingleInstanceMutexName)
-	if err != nil {
-		return nil, false, err
-	}
-
-	handle, _, callErr := createMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
-	if handle == 0 {
-		return nil, false, callErr
-	}
-
-	if errno, ok := callErr.(syscall.Errno); ok && errno == syscall.ERROR_ALREADY_EXISTS {
-		_ = syscall.CloseHandle(syscall.Handle(handle))
-		return nil, true, nil
-	}
-
-	return &SingleInstanceLock{handle: handle}, false, nil
-}
-
-func (l *SingleInstanceLock) Release() {
-	if l == nil || l.handle == 0 {
-		return
-	}
-	closeHandle.Call(l.handle)
-	l.handle = 0
 }
 
 func ShowAlreadyRunningMessage() {

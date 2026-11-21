@@ -1,16 +1,8 @@
-//go:build !windows
+//go:build !windows && !linux && !darwin
 
 package windowsux
 
-type SingleInstanceLock struct{}
-
 func ApplyProcessIdentity() error { return nil }
-
-func AcquireSingleInstance() (*SingleInstanceLock, bool, error) {
-	return &SingleInstanceLock{}, false, nil
-}
-
-func (l *SingleInstanceLock) Release() {}
 
 func ShowAlreadyRunningMessage() {}
 

@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 // Package shutdown lida com a lógica de desligamento do sistema.
 package shutdown
@@ -13,7 +12,7 @@ import (
 var beepDll = syscall.NewLazyDLL("kernel32.dll")
 var beepProc = beepDll.NewProc("Beep")
 
-// Beep emite um som pelo speaker do sistema (Windows apenas).
+// Beep emite um som pelo speaker do sistema (Windows via kernel32.dll Beep).
 func Beep(frequency, duration int) {
 	go beepProc.Call(uintptr(frequency), uintptr(duration))
 }
@@ -27,4 +26,9 @@ func Execute(dryRun bool) error {
 	}
 	cmd := exec.Command("shutdown", "/s", "/t", "0")
 	return cmd.Run()
+}
+
+// Shutdown é o alias idiomático para Execute.
+func Shutdown(dryRun bool) error {
+	return Execute(dryRun)
 }
