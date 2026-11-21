@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    name: Build and publish Windows release
+    name: Build and publish release
     runs-on: windows-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Generate Windows resources
         shell: pwsh
-        run: ./scripts/generate-resource.ps1 -Version "${{ github.ref_name }}" -OutFile "resource.syso"
+        run: ./scripts/generate-resource.ps1 -Version "${{ github.ref_name }}" -OutFile "resource_windows_amd64.syso"
 
       - name: Validate source
         shell: pwsh
@@ -57,7 +57,10 @@ jobs:
       - name: Build installer
         shell: pwsh
         run: |
-          $exe = Get-ChildItem -Path dist -Recurse -Filter sleepoff.exe | Select-Object -First 1 -ExpandProperty FullName
+          $exe = Get-ChildItem -Path dist -Recurse -Filter sleepoff.exe | Where-Object { $_.FullName -match 'amd64' } | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $exe) {
+            $exe = Get-ChildItem -Path dist -Recurse -Filter sleepoff.exe | Select-Object -First 1 -ExpandProperty FullName
+          }
           if (-not $exe) {
             throw "sleepoff.exe not found under dist"
           }
