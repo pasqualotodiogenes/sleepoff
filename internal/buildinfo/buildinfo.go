@@ -50,5 +50,13 @@ func normalizeVersion(v string) string {
 	if v == "" {
 		return ""
 	}
-	return strings.TrimPrefix(v, "v")
+	v = strings.TrimPrefix(v, "v")
+	// Se for pseudo-versão de VCS local (ex: 1.0.4-0.20261121...-hash+dirty), extrai apenas a versão semântica
+	if idx := strings.Index(v, "-0."); idx != -1 {
+		v = v[:idx]
+	}
+	if idx := strings.Index(v, "+"); idx != -1 {
+		v = v[:idx]
+	}
+	return v
 }

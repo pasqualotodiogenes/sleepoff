@@ -4,6 +4,7 @@ package shutdown
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/binary"
 	"fmt"
 	"math"
@@ -11,6 +12,9 @@ import (
 	"os/exec"
 	"time"
 )
+
+//go:embed countdown.wav
+var countdownWavData []byte
 
 // Execute realiza o desligamento real no Linux via systemctl poweroff,
 // com fallback para shutdown -h now e poweroff se sem systemd.
@@ -45,14 +49,16 @@ func Beep(frequency, duration int) {
 }
 
 func playLinuxBeep(frequency, durationMs int) {
-	if frequency <= 0 {
-		frequency = 800
+	wavData := countdownWavData
+	if len(wavData) == 0 {
+		if frequency <= 0 {
+			frequency = 800
+		}
+		if durationMs <= 0 {
+			durationMs = 100
+		}
+		wavData = generateSineWav(frequency, time.Duration(durationMs)*time.Millisecond)
 	}
-	if durationMs <= 0 {
-		durationMs = 100
-	}
-
-	wavData := generateSineWav(frequency, time.Duration(durationMs)*time.Millisecond)
 
 	// 1. Tenta pw-play (PipeWire)
 	if path, err := exec.LookPath("pw-play"); err == nil {

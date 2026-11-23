@@ -144,24 +144,32 @@ func New() Model {
 		items = append(items, menuItem{title: opt.Title, desc: opt.Desc, minutes: opt.Minutes})
 	}
 
-	// Lista customizada sem bordas
+	// Lista moderna com destaque e indicador visual
 	delegate := list.NewDefaultDelegate()
 	delegate.ShowDescription = true
 	delegate.Styles.SelectedTitle = lipgloss.NewStyle().
-		Foreground(config.ColPrimary).
+		Foreground(lipgloss.Color("#38BDF8")).
+		Background(lipgloss.Color("#1E1B4B")).
 		Bold(true).
-		Padding(0, 0, 0, 2)
+		Padding(0, 1).
+		Border(lipgloss.Border{Left: "▎"}, false, false, false, true).
+		BorderForeground(config.ColSecondary)
 	delegate.Styles.SelectedDesc = lipgloss.NewStyle().
-		Foreground(config.ColSecondary).
-		Padding(0, 0, 0, 2)
+		Foreground(lipgloss.Color("#A5B4FC")).
+		Background(lipgloss.Color("#1E1B4B")).
+		Padding(0, 1).
+		Border(lipgloss.Border{Left: "▎"}, false, false, false, true).
+		BorderForeground(config.ColSecondary)
 	delegate.Styles.NormalTitle = lipgloss.NewStyle().
 		Foreground(config.ColText).
-		Padding(0, 0, 0, 2)
+		Padding(0, 1).
+		Border(lipgloss.Border{Left: " "}, false, false, false, true)
 	delegate.Styles.NormalDesc = lipgloss.NewStyle().
 		Foreground(config.ColDim).
-		Padding(0, 0, 0, 2)
+		Padding(0, 1).
+		Border(lipgloss.Border{Left: " "}, false, false, false, true)
 
-	l := list.New(items, delegate, 40, 16)
+	l := list.New(items, delegate, 52, 16)
 	l.Title = ""
 	l.SetShowTitle(false)
 	l.SetShowHelp(false)
@@ -173,6 +181,10 @@ func New() Model {
 	ti.Focus()
 	ti.CharLimit = 4
 	ti.Width = 10
+	ti.Prompt = "▸ "
+	ti.PromptStyle = lipgloss.NewStyle().Foreground(config.ColSecondary).Bold(true)
+	ti.TextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#38BDF8")).Bold(true)
+	ti.PlaceholderStyle = lipgloss.NewStyle().Foreground(config.ColDim)
 
 	return Model{
 		State:       StateSplash,

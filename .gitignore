@@ -3,3 +3,15 @@
 *.syso
 dist/
 build/
+
+# Binário compilado local
+/sleepoff
+
+# Imagens de teste e prints temporários
+*.png
+
+# Arquivos de áudio e scripts avulsos de rascunho
+mixkit-interface-option-select-2573.wav
+scripts/test_page.mjs
+txt.txt
+

@@ -66,9 +66,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			availableHeight = 10
 		}
 
-		m.List.SetWidth(availableWidth)
-		m.List.SetHeight(availableHeight)
-		m.Progress.Width = availableWidth - 6
+		m.List.SetWidth(56)
+		m.List.SetHeight(14)
+		m.Progress.Width = 42
 
 		m.syncDesktop(false)
 		return m, tea.ClearScreen

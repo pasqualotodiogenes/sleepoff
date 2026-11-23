@@ -11,10 +11,45 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const cardWidth = 60
+
+// Renderiza barra superior padronizada estilo Claude Code / GitHub CLI
+func renderTopBar(title string, statusBadge string, dryRun bool) string {
+	left := ui.StyleBadgeApp.Render("sleepoff") + " " + ui.StyleBadgeVersion.Render("v"+buildinfo.VersionString())
+	if title != "" {
+		left += ui.StyleDim.Render(" ── ") + ui.StyleSectionHeader.Render(title)
+	}
+
+	right := ""
+	if statusBadge != "" {
+		right += statusBadge + " "
+	}
+	if dryRun {
+		right += ui.StyleBadgeDryRun.Render("DRY-RUN")
+	}
+
+	totalTextLen := lipgloss.Width(left) + lipgloss.Width(right)
+	spaces := cardWidth - 4 - totalTextLen
+	if spaces < 2 {
+		spaces = 2
+	}
+
+	return left + strings.Repeat(" ", spaces) + right
+}
+
+func renderDivider() string {
+	return ui.StyleDivider.Render(strings.Repeat("─", cardWidth-4))
+}
+
 // --- VIEW PRINCIPAL ---
 func (m Model) View() string {
 	if m.Quitting {
-		return "\n  Até mais! 👋\n\n"
+		box := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(ui.ColBorderMuted).
+			Padding(1, 3).
+			Render(ui.StyleBadgeApp.Render("sleepoff") + " finalizado com sucesso. Até mais! 👋")
+		return "\n" + box + "\n\n"
 	}
 
 	switch m.State {
@@ -32,214 +67,270 @@ func (m Model) View() string {
 	return ""
 }
 
-// --- SPLASH SCREEN ANIMADO ---
+// --- 1. SPLASH SCREEN ---
 func (m Model) viewSplash() string {
-	// Progresso da animação (0.0 a 1.0)
 	progress := float64(m.SplashFrame) / 100.0
+	if progress > 1.0 {
+		progress = 1.0
+	}
 
-	// Logo ASCII
+	var b strings.Builder
+	b.WriteString(renderTopBar("", "", m.DryRun) + "\n")
+	b.WriteString(renderDivider() + "\n\n")
+
 	logo := []string{
-		"███████╗██╗     ███████╗███████╗██████╗  ██████╗ ███████╗███████╗",
-		"██╔════╝██║     ██╔════╝██╔════╝██╔══██╗██╔═══██╗██╔════╝██╔════╝",
-		"███████╗██║     █████╗  █████╗  ██████╔╝██║   ██║█████╗  █████╗  ",
-		"╚════██║██║     ██╔══╝  ██╔══╝  ██╔═══╝ ██║   ██║██╔══╝  ██╔══╝  ",
-		"███████║███████╗███████╗███████╗██║     ╚██████╔╝██║     ██║     ",
-		"╚══════╝╚══════╝╚══════╝╚══════╝╚═╝      ╚═════╝ ╚═╝     ╚═╝     ",
-	}
-
-	s := "\n\n\n"
-
-	// Fade-in/out do logo
-	opacity := 0.0
-	if progress < 0.3 {
-		// Fade in primeiro 30%
-		opacity = progress / 0.3
-	} else if progress > 0.7 {
-		// Fade out últimos 30%
-		opacity = 1.0 - ((progress - 0.7) / 0.3)
-	} else {
-		// Full brightness no meio
-		opacity = 1.0
-	}
-
-	// Escolhe cor baseado na opacidade
-	color := config.ColPrimary
-	if opacity < 0.3 {
-		color = config.ColDim
-	} else if opacity < 0.6 {
-		color = config.ColText
+		"███████╗██╗     ███████╗███████╗██████╗  ██████╗ ",
+		"██╔════╝██║     ██╔════╝██╔════╝██╔══██╗██╔═══██╗",
+		"███████╗██║     █████╗  █████╗  ██████╔╝██║   ██║",
+		"╚════██║██║     ██╔══╝  ██╔══╝  ██╔═══╝ ██║   ██║",
+		"███████║███████╗███████╗███████╗██║     ╚██████╔╝",
+		"╚══════╝╚══════╝╚══════╝╚══════╝╚═╝      ╚═════╝ ",
 	}
 
 	logoStyle := lipgloss.NewStyle().
-		Foreground(color).
-		Bold(true).
-		Align(lipgloss.Center)
+		Foreground(config.ColPrimary).
+		Bold(true)
 
 	for _, line := range logo {
-		s += logoStyle.Render(line) + "\n"
+		b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(logoStyle.Render(line)) + "\n")
 	}
+	b.WriteString("\n")
 
-	s += "\n\n"
-
-	// Loading bar
-	barLen := 40
+	barLen := 36
 	filled := int(progress * float64(barLen))
 	if filled > barLen {
 		filled = barLen
 	}
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", barLen-filled)
+	barStyled := lipgloss.NewStyle().Foreground(ui.ColAccentCyan).Render(bar)
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(barStyled) + "\n\n")
 
-	s += lipgloss.NewStyle().
-		Foreground(config.ColSecondary).
-		Align(lipgloss.Center).
-		Render(bar) + "\n\n"
+	statusMsg := "● Carregando temporizador..."
+	if progress > 0.85 {
+		statusMsg = "✔ Pronto!"
+	}
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(ui.StyleDim.Render(statusMsg)) + "\n")
 
-	// Mensagem
-	msg := "Iniciando..."
-	if progress > 0.7 {
-		msg = "Pronto!"
+	return ui.StyleCard.Width(cardWidth).Render(b.String())
+}
+
+// --- 2. MENU INTERATIVO COMPACTO (ESTILO CLAUDE CODE / GUM) ---
+func (m Model) viewMenu() string {
+	var b strings.Builder
+
+	b.WriteString(renderTopBar("", "", m.DryRun) + "\n")
+	b.WriteString(renderDivider() + "\n\n")
+
+	b.WriteString(ui.StyleSectionHeader.Render("Selecione o tempo de desligamento:") + "\n\n")
+
+	// Renderização direta, compacta e elegante das opções
+	curIdx := m.List.Index()
+	for idx, opt := range config.DefaultTimeOptions {
+		isSelected := idx == curIdx
+		if isSelected {
+			selector := lipgloss.NewStyle().Foreground(ui.ColAccentCyan).Bold(true).Render("❯ ")
+			title := lipgloss.NewStyle().Foreground(ui.ColSelectedFg).Bold(true).Render(fmt.Sprintf("%-15s", opt.Title))
+			desc := lipgloss.NewStyle().Foreground(lipgloss.Color("#94A3B8")).Render(opt.Desc)
+			content := selector + title + "  " + desc
+
+			styledLine := lipgloss.NewStyle().
+				Background(ui.ColSelectedBg).
+				Width(cardWidth - 4).
+				Render(" " + content)
+			b.WriteString(styledLine + "\n")
+		} else {
+			selector := "  "
+			title := lipgloss.NewStyle().Foreground(config.ColText).Render(fmt.Sprintf("%-15s", opt.Title))
+			desc := lipgloss.NewStyle().Foreground(config.ColDim).Render(opt.Desc)
+			b.WriteString("  " + selector + title + "  " + desc + "\n")
+		}
 	}
 
-	s += ui.StyleDim.
-		Align(lipgloss.Center).
-		Render(msg)
+	b.WriteString("\n" + renderDivider() + "\n")
+	footer := ui.StyleKey.Render("↑/↓") + " " + ui.StyleKeyDesc.Render("navegar") + "  •  " +
+		ui.StyleKey.Render("enter") + " " + ui.StyleKeyDesc.Render("confirmar") + "  •  " +
+		ui.StyleKey.Render("q") + " " + ui.StyleKeyDesc.Render("sair")
+	b.WriteString(footer)
 
-	return s
+	return ui.StyleCard.Width(cardWidth).Render(b.String())
 }
 
-// --- MENU ---
-func (m Model) viewMenu() string {
-	s := "\n"
-	s += ui.StyleTitle.Render("  "+config.AppName) + " "
-	s += ui.StyleSubtitle.Render("v"+buildinfo.VersionString()) + "\n"
-	s += ui.StyleDim.Render("  "+config.AppDesc) + "\n\n"
-
-	s += m.List.View() + "\n"
-
-	s += ui.StyleHelp.Render("  ↑/↓ navegar • enter selecionar • q sair")
-
-	return s
-}
-
-// --- INPUT PERSONALIZADO ---
+// --- 3. INPUT DE TEMPO PERSONALIZADO ---
 func (m Model) viewCustomInput() string {
-	s := "\n"
-	s += ui.StyleTitle.Render("  Tempo personalizado") + "\n\n"
-	s += "  Digite os minutos:\n\n"
-	s += "  " + m.Input.View() + "\n\n"
-	s += ui.StyleHelp.Render("  enter confirmar • esc voltar")
-	return s
+	var b strings.Builder
+
+	b.WriteString(renderTopBar("TEMPO PERSONALIZADO", "", m.DryRun) + "\n")
+	b.WriteString(renderDivider() + "\n\n")
+
+	b.WriteString(ui.StyleSectionHeader.Render("Quantos minutos antes de desligar?") + "\n\n")
+
+	inputLine := lipgloss.NewStyle().
+		Foreground(ui.ColSelectedFg).
+		Bold(true).
+		Render("❯ " + m.Input.View() + " min")
+	b.WriteString(inputLine + "\n\n")
+
+	b.WriteString(ui.StyleDim.Render("Valores aceitos: 1 a 1440 minutos (ex: 15, 30, 45, 90, 120)") + "\n\n")
+
+	b.WriteString(renderDivider() + "\n")
+	footer := ui.StyleKey.Render("enter") + " " + ui.StyleKeyDesc.Render("confirmar") + "  •  " +
+		ui.StyleKey.Render("esc") + " " + ui.StyleKeyDesc.Render("voltar ao menu")
+	b.WriteString(footer)
+
+	return ui.StyleCard.Width(cardWidth).Render(b.String())
 }
 
-// --- TIMER RODANDO ---
+// --- 4. TIMER EM EXECUÇÃO (HERO DIGITAL) ---
 func (m Model) viewRunning() string {
-	s := "\n"
+	var b strings.Builder
 
-	// Header
-	s += ui.StyleTitle.Render("  "+config.AppName) + "\n"
-	s += ui.StyleDim.Render("  Desligamento programado") + "\n\n"
+	statusBadge := ui.StyleStatusRunning.Render("● RODANDO")
+	if m.Paused {
+		statusBadge = ui.StyleStatusPaused.Render("❚❚ PAUSADO")
+	}
 
-	// Tempo grande
-	min := int(m.Remaining.Minutes())
-	sec := int(m.Remaining.Seconds()) % 60
-	timeStr := fmt.Sprintf("%02d:%02d", min, sec)
-	s += "  " + ui.StyleTimeBig.Render(timeStr) + "\n\n"
+	b.WriteString(renderTopBar("", statusBadge, m.DryRun) + "\n")
+	b.WriteString(renderDivider() + "\n\n")
 
-	// Barra de progresso
+	// Cálculo do display digital do relógio
+	totalSec := int(m.Remaining.Seconds())
+	if totalSec < 0 {
+		totalSec = 0
+	}
+	hours := totalSec / 3600
+	mins := (totalSec % 3600) / 60
+	secs := totalSec % 60
+
+	var timeStr string
+	if hours > 0 {
+		timeStr = fmt.Sprintf("%02d:%02d:%02d", hours, mins, secs)
+	} else {
+		timeStr = fmt.Sprintf("%02d:%02d", mins, secs)
+	}
+
+	bigTime := ui.StyleTimeBig.Render(timeStr)
+	timeSub := ui.StyleDim.Render(fmt.Sprintf("Início: %s  •  Previsão: %s",
+		m.StartTime.Format("15:04"),
+		m.FinishTime.Format("15:04"),
+	))
+
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(bigTime) + "\n")
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(timeSub) + "\n\n")
+
+	// Barra de Progresso
 	pct := 0.0
 	if m.TotalDuration.Seconds() > 0 {
 		pct = (m.TotalDuration.Seconds() - m.Remaining.Seconds()) / m.TotalDuration.Seconds()
-	}
-	progWidth := m.Width - 6
-	if progWidth < 20 {
-		progWidth = 20
-	}
-	if progWidth > 60 {
-		progWidth = 60
-	}
-	m.Progress.Width = progWidth
-	s += "  " + m.Progress.ViewAs(pct) + "\n\n"
-
-	// Status
-	status := "▶ Rodando"
-	statusStyle := ui.StyleStatusRunning
-	if m.Paused {
-		status = "⏸ Pausado"
-		statusStyle = ui.StyleStatusPaused
-	}
-	s += "  " + statusStyle.Render(status) + "\n"
-
-	// Horários
-	s += ui.StyleDim.Render(fmt.Sprintf("  Início: %s  •  Fim: %s",
-		m.StartTime.Format("15:04"),
-		m.FinishTime.Format("15:04"),
-	)) + "\n\n"
-
-	// Logs (últimos eventos)
-	if len(m.Logs) > 0 {
-		s += ui.StyleDim.Render("  "+strings.Repeat("─", 30)) + "\n"
-		for _, log := range m.Logs {
-			logStyle := ui.StyleLogInfo
-			switch log.Level {
-			case "WARN":
-				logStyle = ui.StyleLogWarn
-			case "CRIT":
-				logStyle = ui.StyleLogCrit
-			}
-			s += fmt.Sprintf("  %s %s\n",
-				ui.StyleDim.Render(log.Time),
-				logStyle.Render(log.Message),
-			)
+		if pct < 0 {
+			pct = 0
 		}
-		s += "\n"
+		if pct > 1 {
+			pct = 1
+		}
 	}
 
-	// Aviso de cancelamento pendente
+	barLen := 42
+	filled := int(pct * float64(barLen))
+	if filled > barLen {
+		filled = barLen
+	}
+	progressBar := strings.Repeat("█", filled) + strings.Repeat("░", barLen-filled)
+	pctText := fmt.Sprintf(" %3.0f%%", pct*100)
+	barLine := lipgloss.NewStyle().Foreground(ui.ColAccentCyan).Render(progressBar) +
+		lipgloss.NewStyle().Foreground(config.ColDim).Render(pctText)
+
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(barLine) + "\n\n")
+
+	// Histórico de eventos (Timeline compacta estilo Claude Code)
+	if len(m.Logs) > 0 {
+		b.WriteString(ui.StyleDim.Render("EVENTOS") + "\n")
+		startIdx := 0
+		if len(m.Logs) > 3 {
+			startIdx = len(m.Logs) - 3
+		}
+		for _, log := range m.Logs[startIdx:] {
+			prefix := ui.StyleDim.Render("│ ")
+			timeTag := ui.StyleDim.Render(log.Time)
+			msgStyle := ui.StyleLogInfo
+			if log.Level == "WARN" {
+				msgStyle = ui.StyleLogWarn
+			} else if log.Level == "CRIT" {
+				msgStyle = ui.StyleLogCrit
+			}
+			b.WriteString(fmt.Sprintf("%s%s  %s\n", prefix, timeTag, msgStyle.Render(log.Message)))
+		}
+		b.WriteString("\n")
+	}
+
+	// Alerta de cancelamento pendente
 	if m.CancelPending {
-		cancelWarning := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF6B6B")).
+		alert := lipgloss.NewStyle().
+			Foreground(config.ColErr).
 			Bold(true).
-			Render("  ⚠ Pressione C novamente para sair")
-		s += cancelWarning + "\n\n"
+			Render("⚠ Pressione C ou Esc novamente para cancelar!")
+		b.WriteString(alert + "\n\n")
 	}
 
-	// Controles
-	s += ui.StyleHelp.Render("  [p] pausar  [c] cancelar  [+/-] ajustar tempo")
+	b.WriteString(renderDivider() + "\n")
+	pauseKey := "p pausar"
+	if m.Paused {
+		pauseKey = "p retomar"
+	}
+	footer := ui.StyleKey.Render(pauseKey) + "  •  " +
+		ui.StyleKey.Render("+ / - ajustar ±5m") + "  •  " +
+		ui.StyleKey.Render("c cancelar (2x)")
+	b.WriteString(footer)
 
-	return s
+	return ui.StyleCard.Width(cardWidth).Render(b.String())
 }
 
-// --- TELA DE PÂNICO (sutil) ---
+// --- 5. TELA DE PÂNICO (ÚLTIMOS 10 SEGUNDOS) ---
 func (m Model) viewPanic() string {
-	s := "\n\n"
+	var b strings.Builder
 
-	// Ícone sutil
-	s += lipgloss.NewStyle().
-		Foreground(config.ColWarn).
-		Render("  ⏰") + "\n\n"
+	left := lipgloss.NewStyle().Foreground(ui.ColBorderAlert).Bold(true).Render("⚠ DESLIGAMENTO IMINENTE")
+	right := ""
+	if m.DryRun {
+		right = ui.StyleBadgeDryRun.Render("DRY-RUN")
+	}
+	spaces := cardWidth - 4 - lipgloss.Width(left) - lipgloss.Width(right)
+	if spaces < 2 {
+		spaces = 2
+	}
+	b.WriteString(left + strings.Repeat(" ", spaces) + right + "\n")
+	b.WriteString(renderDivider() + "\n\n")
 
-	s += ui.StylePanicSubtle.Render("  Tempo esgotado") + "\n\n"
-
-	// Countdown
 	remaining := int(m.PanicCountdown)
 	if remaining < 0 {
 		remaining = 0
 	}
 
-	s += "  Desligando em "
-	s += ui.StylePanic.Render(fmt.Sprintf("%d", remaining))
-	s += " segundos...\n\n"
+	alertMsg := fmt.Sprintf(">>>  DESLIGANDO EM %02d SEGUNDOS  <<<", remaining)
+	b.WriteString(lipgloss.NewStyle().
+		Width(cardWidth - 4).
+		Align(lipgloss.Center).
+		Foreground(ui.ColBorderAlert).
+		Bold(true).
+		Render(alertMsg) + "\n")
 
-	// Barra visual do countdown
-	barLen := 20
+	subMsg := ui.StyleDim.Render("Salve seus arquivos. O sistema será desligado agora!")
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(subMsg) + "\n\n")
+
+	barLen := 42
 	filled := (remaining * barLen) / 10
 	if filled > barLen {
 		filled = barLen
 	}
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", barLen-filled)
-	s += "  " + ui.StylePanicSubtle.Render(bar) + "\n\n"
+	barStyled := lipgloss.NewStyle().Foreground(ui.ColBorderAlert).Bold(true).Render(bar)
+	b.WriteString(lipgloss.NewStyle().Width(cardWidth - 4).Align(lipgloss.Center).Render(barStyled) + "\n\n")
 
-	s += ui.StyleHelp.Render("  [c] cancelar agora")
+	b.WriteString(renderDivider() + "\n")
+	abortBtn := lipgloss.NewStyle().
+		Foreground(ui.ColBorderAlert).
+		Bold(true).
+		Render("[C] ou [Esc] ABORTAR DESLIGAMENTO IMEDIATAMENTE")
+	b.WriteString(abortBtn)
 
-	return s
+	return ui.StyleCardPanic.Width(cardWidth).Render(b.String())
 }
