@@ -12,7 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
+
+    env:
+      CGO_ENABLED: 0
 
     steps:
       - name: Checkout
@@ -35,3 +38,43 @@ jobs:
 
       - name: Build
         run: go build ./...
+
+      - name: Cross-compile macOS (Darwin amd64 & arm64)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          GOOS=darwin GOARCH=amd64 go build ./...
+          GOOS=darwin GOARCH=arm64 go build ./...
+          GOOS=darwin GOARCH=amd64 go vet ./...
+          GOOS=darwin GOARCH=arm64 go vet ./...
+
+  site:
+    name: Build Site (SSG)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: 'site/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: |
+          cd site
+          pnpm install --frozen-lockfile
+
+      - name: Build and Generate SSG
+        run: |
+          cd site
+          pnpm generate
+        env:
+          NUXT_APP_BASE_URL: '/sleepoff/'
+

@@ -14,10 +14,10 @@ interface Mission {
 
 // Missões do modo guiado "Aprenda na Prática"
 const missions = ref<Mission[]>([
-  { id: 'start', title: '1. Iniciar Timer', desc: 'Execute sleepoff 15m --dry-run ou selecione no menu', completed: false },
-  { id: 'pause', title: '2. Pausar Execução', desc: 'Pressione p ou Espaço durante o timer', completed: false },
-  { id: 'add_time', title: '3. Adicionar Tempo', desc: 'Pressione + para somar 5 minutos', completed: false },
-  { id: 'panic', title: '4. Testar Cancelamento', desc: 'Aborte um timer ativo ou durante o pânico', completed: false }
+  { id: 'start', title: '1. Iniciar Timer', desc: 'Digite sleepoff 10s --dry-run ou escolha no menu', completed: false },
+  { id: 'pause', title: '2. Pausar / Retomar', desc: 'Pressione [p] ou [Espaço] durante a contagem', completed: false },
+  { id: 'add_time', title: '3. Somar +5 min', desc: 'Pressione [+] para estender o temporizador', completed: false },
+  { id: 'panic', title: '4. Abortar Alarme', desc: 'Pressione [c] ou [Esc] durante o aviso de pânico', completed: false }
 ])
 
 const isMuted = ref(false)
@@ -35,7 +35,7 @@ const isTerminalFocused = ref(false)
 const shellHistory = ref<Array<{ cmd?: string; output?: string; type?: 'input' | 'output' | 'error' }>>([
   {
     type: 'output',
-    output: 'Linux 6.11.0-arch1-1-x86_64 • sleepoff CLI v1.0.0 (Go 1.23, CGO_ENABLED=0)\nDigite `sleepoff` para o menu interativo, `sleepoff 10s --dry-run` para teste rápido, ou `--help`.'
+    output: 'sleepoff CLI v1.0.0 (Go 1.25+, CGO_ENABLED=0, 100% Nativo)\nLinux 6.11 x86_64 • TUI Charm Bubble Tea • Single-Instance Mutex\nDigite `sleepoff` para o menu TUI, `10s -d` para teste rápido, ou `--help`.'
   }
 ])
 const historyIndex = ref(-1)
@@ -500,7 +500,7 @@ internal/  packaging/  scripts/  site/  sleepoff*`
   if (base === 'pwd') {
     shellHistory.value.push({
       type: 'output',
-      output: '/home/goddi/sleepoff'
+      output: '/home/user/sleepoff'
     })
     shellInput.value = ''
     scrollToBottom()
@@ -510,7 +510,7 @@ internal/  packaging/  scripts/  site/  sleepoff*`
   if (base === 'whoami') {
     shellHistory.value.push({
       type: 'output',
-      output: 'goddi'
+      output: 'user'
     })
     shellInput.value = ''
     scrollToBottom()
@@ -534,7 +534,7 @@ internal/  packaging/  scripts/  site/  sleepoff*`
         type: 'output',
         output: `# sleepoff
 Sleep Timer Inteligente para Windows e Multiplataforma.
-Construído em Go 1.23 com Bubble Tea, áudio embedado e zero bloat.`
+Construído em Go 1.25+ com Bubble Tea, áudio embedado e zero bloat.`
       })
     } else {
       shellHistory.value.push({
@@ -568,6 +568,15 @@ Construído em Go 1.23 com Bubble Tea, áudio embedado e zero bloat.`
   }
 
   if (base !== 'sleepoff') {
+    // Atalho direto: aceita durações como "10s", "30m", "15m -d" sem precisar digitar "sleepoff" primeiro
+    const directDuration = parseDurationString(base)
+    if (directDuration !== null) {
+      const isDry = parts.slice(1).includes('--dry-run') || parts.slice(1).includes('-d')
+      shellInput.value = ''
+      startTui(directDuration, isDry)
+      return
+    }
+
     shellHistory.value.push({
       type: 'error',
       output: `Comando não reconhecido: "${base}". Digite "sleepoff", "help" ou selecione os atalhos abaixo.`
@@ -600,7 +609,7 @@ Comandos:
   if (cleanArgs.includes('--version') || cleanArgs.includes('-v')) {
     shellHistory.value.push({
       type: 'output',
-      output: 'sleepoff version 1.0.0 (Go 1.23, CGO_ENABLED=0, multiplatform)'
+      output: 'sleepoff version 1.0.0 (Go 1.25.6, CGO_ENABLED=0, multiplatform)'
     })
     shellInput.value = ''
     scrollToBottom()
@@ -881,26 +890,42 @@ const cancelSummaryStats = computed(() => {
   <div
     ref="terminalContainerRef"
     @click="focusTerminal"
-    class="relative w-full max-w-5xl mx-auto min-h-[580px] sm:min-h-[600px] rounded-2xl border border-slate-700/70 bg-slate-950/95 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300"
-    :class="{ 'ring-1 ring-violet-500/50 shadow-violet-950/40': isTerminalFocused }"
+    class="relative w-full max-w-5xl mx-auto min-h-[560px] sm:min-h-[580px] rounded-2xl border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ring-1 ring-white/5"
+    :class="{ 'ring-1 ring-violet-500/60 shadow-violet-950/50': isTerminalFocused }"
   >
 
-    <!-- Header Terminal Bar (Responsivo & Zero Glitch) -->
+    <!-- Header Terminal Bar (Estilo macOS / Alacritty com Indicadores de Alta Precisão) -->
     <div class="relative z-10 flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-900/90 border-b border-slate-800/90 select-none min-w-0">
       <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
-        <div class="flex items-center space-x-1.5 shrink-0">
-          <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/80 inline-block"></span>
-          <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500/80 inline-block"></span>
-          <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+        <!-- macOS Window Action Dots com acabamento polido e interatividade -->
+        <div class="flex items-center space-x-2 shrink-0">
+          <button
+            @click.stop="runQuickCommand('clear')"
+            title="Fechar / Limpar terminal (clear)"
+            class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/80 shadow-sm inline-block hover:brightness-110 active:scale-90 transition-all cursor-pointer"
+            aria-label="Limpar terminal"
+          />
+          <button
+            @click.stop="exitTuiToShell"
+            title="Minimizar TUI / Voltar ao Bash"
+            class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/80 shadow-sm inline-block hover:brightness-110 active:scale-90 transition-all cursor-pointer"
+            aria-label="Voltar ao Bash"
+          />
+          <button
+            @click.stop="switchTab(mode === 'shell' ? 'tui' : 'shell')"
+            title="Alternar entre Bash e TUI"
+            class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/80 shadow-sm inline-block hover:brightness-110 active:scale-90 transition-all cursor-pointer"
+            aria-label="Alternar abas"
+          />
         </div>
 
-        <!-- Terminal Tabs com status dinâmico -->
-        <div class="flex items-center space-x-1 font-mono text-xs ml-1 sm:ml-2">
+        <!-- Terminal Tabs com status dinâmico e atalhos -->
+        <div class="flex items-center space-x-1.5 font-mono text-xs ml-1 sm:ml-2">
           <button
             @click.stop="switchTab('shell')"
             aria-label="1: bash — terminal bash interativo"
-            :class="mode === 'shell' ? 'bg-slate-800 text-cyan-300 font-bold border-b-2 border-cyan-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-            class="px-2 sm:px-2.5 py-1 rounded-t transition-all flex items-center space-x-1 cursor-pointer shrink-0 min-h-[36px]"
+            :class="mode === 'shell' ? 'bg-slate-800 text-cyan-300 font-bold border-b-2 border-cyan-400 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+            class="px-2.5 py-1.5 rounded-t-lg transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 min-h-[36px]"
           >
             <Icon name="heroicons:command-line" class="w-3.5 h-3.5 text-cyan-400" />
             <span>1: bash</span>
@@ -908,21 +933,21 @@ const cancelSummaryStats = computed(() => {
           <button
             @click.stop="switchTab('tui')"
             aria-label="2: sleepoff — interface Bubble Tea TUI"
-            :class="mode === 'tui' ? 'bg-slate-800 text-violet-300 font-bold border-b-2 border-violet-400' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
-            class="px-2 sm:px-2.5 py-1 rounded-t transition-all flex items-center space-x-1 cursor-pointer min-w-0 min-h-[36px]"
+            :class="mode === 'tui' ? 'bg-slate-800 text-violet-300 font-bold border-b-2 border-violet-400 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'"
+            class="px-2.5 py-1.5 rounded-t-lg transition-all flex items-center space-x-1.5 cursor-pointer min-w-0 min-h-[36px]"
           >
             <Icon name="heroicons:cpu-chip" class="w-3.5 h-3.5 text-violet-400 shrink-0" />
             <span class="truncate">2: sleepoff</span>
             <span
               v-if="tuiState === 'RUNNING'"
-              class="inline-flex items-center text-[10px] text-emerald-400 font-bold ml-1 px-1.5 py-0.2 bg-emerald-950/80 rounded border border-emerald-700/50 shrink-0"
+              class="inline-flex items-center text-[10px] text-emerald-400 font-bold ml-1 px-1.5 py-0.5 bg-emerald-950/80 rounded border border-emerald-700/50 shrink-0"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1" />
               {{ formatRemaining(remainingSeconds) }}
             </span>
             <span
               v-else-if="tuiState === 'CONFIRMATION'"
-              class="inline-flex items-center text-[10px] text-red-400 font-bold ml-1 px-1.5 py-0.2 bg-red-950/80 rounded border border-red-700/50 shrink-0"
+              class="inline-flex items-center text-[10px] text-red-400 font-bold ml-1 px-1.5 py-0.5 bg-red-950/80 rounded border border-red-700/50 shrink-0"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping mr-1" />
               {{ formatPanicTime(panicCountdown) }}
@@ -931,16 +956,23 @@ const cancelSummaryStats = computed(() => {
         </div>
       </div>
 
+      <!-- Título Central Sutil -->
+      <div class="hidden lg:flex items-center space-x-1.5 text-[11px] font-mono text-slate-500 select-none">
+        <Icon name="heroicons:command-line" class="w-3.5 h-3.5 text-slate-500" />
+        <span>sleepoff • Charm Bubble Tea v1.3.10</span>
+      </div>
+
+      <!-- Controles de Áudio & Sair -->
       <div class="flex items-center space-x-1.5 sm:space-x-3 text-xs shrink-0">
         <!-- Áudio Visualizer SVG animado reativo aos bipes -->
         <div
-          class="hidden md:flex items-center space-x-0.5 px-2 py-1 rounded bg-slate-800/60 border border-slate-700/50"
+          class="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-800/70 border border-slate-700/60"
           :title="isMuted ? 'Áudio desativado' : (isAudioPlaying ? 'Bipe emitindo som' : 'Aguardando som')"
         >
           <span
             class="w-1 rounded-full transition-all duration-100"
             :class="[
-              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-3.5 bg-cyan-400 animate-pulse' : 'h-1.5 bg-slate-500')
+              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-4 bg-cyan-400 animate-pulse' : 'h-1.5 bg-slate-500')
             ]"
           />
           <span
@@ -952,16 +984,16 @@ const cancelSummaryStats = computed(() => {
           <span
             class="w-1 rounded-full transition-all duration-100"
             :class="[
-              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-3 bg-emerald-400 animate-pulse' : 'h-1.5 bg-slate-500')
+              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-3.5 bg-emerald-400 animate-pulse' : 'h-1.5 bg-slate-500')
             ]"
           />
           <span
             class="w-1 rounded-full transition-all duration-100"
             :class="[
-              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-4 bg-cyan-300 animate-pulse' : 'h-2 bg-slate-500')
+              isMuted ? 'h-1 bg-slate-600' : (isAudioPlaying ? 'h-4.5 bg-cyan-300 animate-pulse' : 'h-2 bg-slate-500')
             ]"
           />
-          <span class="ml-1.5 text-[10px] font-mono" :class="isAudioPlaying ? 'text-cyan-300 font-bold' : 'text-slate-400'">
+          <span class="ml-1.5 text-[10px] font-mono tracking-wider" :class="isAudioPlaying ? 'text-cyan-300 font-bold' : 'text-slate-400'">
             {{ isMuted ? 'MUTE' : (isAudioPlaying ? 'BEEP' : 'AUDIO') }}
           </span>
         </div>
@@ -969,20 +1001,20 @@ const cancelSummaryStats = computed(() => {
         <button
           @click.stop="toggleMute"
           :aria-label="isMuted ? 'Ativar efeitos sonoros do terminal' : 'Mutar efeitos sonoros do terminal'"
-          class="flex items-center space-x-1 px-2.5 py-1.5 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer min-h-[36px]"
+          class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer min-h-[36px] border border-slate-700/50"
           :title="isMuted ? 'Ativar Efeitos Sonoros' : 'Mutar Efeitos Sonoros'"
         >
           <Icon :name="isMuted ? 'heroicons:speaker-x-mark' : 'heroicons:speaker-wave'" class="w-4 h-4 text-cyan-400" />
-          <span class="hidden sm:inline">{{ isMuted ? 'Mudo' : 'Som' }}</span>
+          <span class="hidden sm:inline text-xs font-mono">{{ isMuted ? 'Mudo' : 'Som' }}</span>
         </button>
 
         <button
           v-if="mode === 'tui'"
           @click.stop="exitTuiToShell"
           aria-label="Sair da TUI e retornar ao shell"
-          class="px-2.5 py-1.5 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 font-mono transition-colors cursor-pointer text-xs min-h-[36px]"
+          class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 font-mono transition-colors cursor-pointer text-xs min-h-[36px]"
         >
-          <span>Sair</span>
+          <span>Sair (q)</span>
         </button>
       </div>
     </div>
@@ -991,7 +1023,7 @@ const cancelSummaryStats = computed(() => {
     <div
       ref="terminalBodyRef"
       @click="focusTerminal"
-      class="p-4 sm:p-6 min-h-[360px] sm:min-h-[400px] max-h-[500px] overflow-y-auto font-mono text-sm leading-relaxed text-slate-200 select-text flex flex-col justify-between cursor-text"
+      class="p-4 sm:p-6 min-h-[260px] sm:min-h-[400px] max-h-[520px] overflow-y-auto font-mono text-sm leading-relaxed text-slate-200 select-text flex flex-col justify-between cursor-text"
     >
       
       <!-- 1. MODO SHELL INTERATIVO -->
@@ -1000,7 +1032,7 @@ const cancelSummaryStats = computed(() => {
           <!-- History items -->
           <div v-for="(item, idx) in shellHistory" :key="idx" class="space-y-1">
             <div v-if="item.type === 'input'" class="text-cyan-400 flex items-center space-x-1.5 font-mono text-xs sm:text-sm">
-              <span class="text-emerald-400 font-bold">goddi@sleepoff</span>
+              <span class="text-emerald-400 font-bold">user@sleepoff</span>
               <span class="text-slate-500">:</span>
               <span class="text-cyan-400 font-bold">~</span>
               <span class="text-violet-400 font-bold mr-1">$</span>
@@ -1011,7 +1043,7 @@ const cancelSummaryStats = computed(() => {
 
           <!-- Active Prompt Line: Authentic Terminal Prompt with Blinking Block Cursor -->
           <div class="flex items-center flex-wrap font-mono text-xs sm:text-sm pt-1 cursor-text" @click="focusTerminal">
-            <span class="text-emerald-400 font-bold">goddi@sleepoff</span>
+            <span class="text-emerald-400 font-bold">user@sleepoff</span>
             <span class="text-slate-500">:</span>
             <span class="text-cyan-400 font-bold">~</span>
             <span class="text-violet-400 font-bold mr-2">$</span>
@@ -1044,39 +1076,54 @@ const cancelSummaryStats = computed(() => {
         </div>
       </div>
 
-      <!-- 2. MODO TUI (BUBBLE TEA FIDELIDADE TOTAL) -->
+      <!-- 2. MODO TUI (BUBBLE TEA FIDELIDADE TOTAL AO GO VIEW.GO) -->
       <div v-else class="flex flex-col items-center justify-center flex-1 my-auto text-center w-full">
         
         <!-- Estado: SPLASH -->
-        <div v-if="tuiState === 'SPLASH'" class="space-y-4 animate-fade-in py-8">
-          <pre class="text-xs sm:text-sm font-black text-violet-400 tracking-tighter select-none">
- ███████╗██╗     ███████╗███████╗██████╗  ██████╗ ███████╗███████╗
- ██╔════╝██║     ██╔════╝██╔════╝██╔══██╗██╔═══██╗██╔════╝██╔════╝
- ███████╗██║     █████╗  █████╗  ██████╔╝██║   ██║█████╗  █████╗  
- ╚════██║██║     ██╔══╝  ██╔══╝  ██╔═══╝ ██║   ██║██╔══╝  ██╔══╝  
- ███████║███████╗███████╗███████╗██║     ╚██████╔╝██║     ██║     
- ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝      ╚═════╝ ╚═╝     ╚═╝     </pre>
-          <div class="text-cyan-400 font-semibold tracking-wide">
-            Timer de desligamento automático • v1.0.0
+        <div v-if="tuiState === 'SPLASH'" class="space-y-4 animate-fade-in py-6 w-full max-w-lg mx-auto">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2 font-mono text-xs">
+            <span class="text-violet-300 font-bold">sleepoff <span class="text-slate-500">v1.0.0</span></span>
+            <span v-if="isDryRun" class="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-bold">DRY-RUN</span>
           </div>
-          <div class="text-xs text-slate-500 animate-pulse">Iniciando máquina de estados...</div>
+          <pre class="text-[10px] sm:text-xs font-mono font-bold text-violet-400 tracking-tighter select-none leading-tight inline-block text-left">
+ ███████╗██╗     ███████╗███████╗██████╗  ██████╗ 
+ ██╔════╝██║     ██╔════╝██╔════╝██╔══██╗██╔═══██╗
+ ███████╗██║     █████╗  █████╗  ██████╔╝██║   ██║
+ ╚════██║██║     ██╔══╝  ██╔══╝  ██╔═══╝ ██║   ██║
+ ███████║███████╗███████╗███████╗██║     ╚██████╔╝
+ ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝      ╚═════╝ </pre>
+          <div class="text-cyan-400 font-semibold tracking-wide text-xs">
+            Timer de desligamento automático • v1.0.0 (Go 1.25.6)
+          </div>
+          <div class="text-xs text-slate-500 font-mono animate-pulse">
+            Iniciando máquina de estados TEA (The Elm Architecture)...
+          </div>
         </div>
 
-        <!-- Estado: MENU -->
-        <div v-else-if="tuiState === 'MENU'" class="w-full max-w-md mx-auto space-y-4 text-left py-4">
-          <div class="text-center font-bold text-violet-400 border-b border-slate-800 pb-2">
-            SELECIONE O TEMPO DE DESLIGAMENTO
+        <!-- Estado: MENU (Fiel ao viewMenu() do Go) -->
+        <div v-else-if="tuiState === 'MENU'" class="w-full max-w-md mx-auto space-y-3.5 text-left py-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 font-mono text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="text-violet-300 font-bold">sleepoff</span>
+              <span class="text-slate-500 text-[10px]">v1.0.0</span>
+              <span class="text-slate-600">──</span>
+              <span class="text-slate-200 font-bold">SELECIONE O TEMPO</span>
+            </div>
+            <span v-if="isDryRun" class="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-bold">
+              DRY-RUN
+            </span>
           </div>
-          <div class="space-y-2">
+
+          <div class="space-y-1.5 font-mono text-xs">
             <div
               v-for="(opt, idx) in menuOptions"
               :key="idx"
               @click="selectedMenuIdx = idx; opt.minutes === -1 ? tuiState = 'CUSTOM_INPUT' : launchTimer(opt.minutes * 60)"
               :class="[
-                'p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between',
+                'p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between',
                 selectedMenuIdx === idx
-                  ? 'border-violet-500 bg-violet-950/40 text-cyan-300 font-bold shadow-[0_0_15px_rgba(124,58,237,0.25)]'
-                  : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  ? 'border-violet-500/80 bg-violet-950/40 text-cyan-300 font-bold shadow-[0_0_15px_rgba(124,58,237,0.25)] translate-x-1'
+                  : 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200'
               ]"
             >
               <div class="flex items-center space-x-3">
@@ -1085,19 +1132,29 @@ const cancelSummaryStats = computed(() => {
                 </span>
                 <span>{{ opt.title }}</span>
               </div>
-              <span class="text-xs text-slate-500">{{ opt.desc }}</span>
+              <span class="text-[11px] text-slate-500">{{ opt.desc }}</span>
             </div>
           </div>
-          <div class="text-xs text-center text-slate-500 pt-2">
-            Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">↑</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">↓</kbd> ou clique para selecionar. <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Enter</kbd> confirma.
+
+          <div class="border-t border-slate-800/80 pt-2.5 text-[11px] text-center text-slate-500 font-mono">
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">↑/↓</kbd> navegar • <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Enter</kbd> confirmar • <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">q</kbd> sair
           </div>
         </div>
 
-        <!-- Estado: CUSTOM INPUT -->
-        <div v-else-if="tuiState === 'CUSTOM_INPUT'" class="w-full max-w-sm mx-auto space-y-4 py-8 text-center">
-          <div class="font-bold text-violet-400">DEFINIR TEMPO PERSONALIZADO</div>
-          <div class="text-xs text-slate-400">Quantos minutos você deseja antes de desligar?</div>
+        <!-- Estado: CUSTOM INPUT (Fiel ao viewCustomInput() do Go) -->
+        <div v-else-if="tuiState === 'CUSTOM_INPUT'" class="w-full max-w-sm mx-auto space-y-4 py-6 text-center font-mono">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="text-violet-300 font-bold">sleepoff</span>
+              <span class="text-slate-600">──</span>
+              <span class="text-slate-200 font-bold">TEMPO PERSONALIZADO</span>
+            </div>
+            <span v-if="isDryRun" class="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-bold">DRY-RUN</span>
+          </div>
+
+          <div class="text-xs text-slate-300">Quantos minutos você deseja antes de desligar?</div>
           <div class="flex items-center justify-center space-x-2 pt-2">
+            <span class="text-cyan-400 font-bold">❯</span>
             <input
               id="tui-custom-minutes-input"
               aria-label="Minutos personalizados para contagem regressiva"
@@ -1105,56 +1162,67 @@ const cancelSummaryStats = computed(() => {
               type="number"
               min="1"
               max="1440"
-              class="w-32 bg-slate-900 border border-violet-500 rounded-lg px-4 py-2 text-center text-xl font-bold text-cyan-300 outline-none"
+              class="w-32 bg-slate-900 border border-violet-500 rounded-xl px-4 py-2 text-center text-xl font-bold text-cyan-300 outline-none shadow-[0_0_15px_rgba(124,58,237,0.2)]"
             />
             <span class="text-slate-400 font-bold">min</span>
           </div>
-          <div class="flex justify-center space-x-3 pt-4">
+          <div class="text-[11px] text-slate-500">Valores aceitos: 1 a 1440 minutos</div>
+
+          <div class="flex justify-center space-x-3 pt-3 border-t border-slate-800/80">
             <button
               @click="tuiState = 'MENU'"
-              class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs cursor-pointer"
+              class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs cursor-pointer border border-slate-700"
             >
               Voltar (Esc)
             </button>
             <button
               @click="launchTimer(parseInt(customMinutes) * 60)"
-              class="px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 cursor-pointer"
+              class="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 cursor-pointer"
             >
               Iniciar (Enter)
             </button>
           </div>
         </div>
 
-        <!-- Estado: RUNNING -->
-        <div v-else-if="tuiState === 'RUNNING'" class="w-full max-w-lg mx-auto space-y-5 py-2">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <!-- Estado: RUNNING (Fiel ao viewRunning() do Go com Claude Code TUI styling) -->
+        <div v-else-if="tuiState === 'RUNNING'" class="w-full max-w-lg mx-auto space-y-4 py-2">
+          <!-- Top bar padronizada -->
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 font-mono text-xs">
             <div class="flex items-center space-x-2">
-              <span class="w-2.5 h-2.5 rounded-full" :class="isPaused ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-ping'"></span>
-              <span class="font-bold tracking-wide" :class="isPaused ? 'text-amber-400' : 'text-emerald-400'">
-                {{ isPaused ? '⏸ PAUSADO' : '▶ RODANDO' }}
+              <span class="text-violet-300 font-bold">sleepoff</span>
+              <span class="text-slate-500 text-[10px]">v1.0.0</span>
+              <span class="text-slate-600">──</span>
+              <span class="text-slate-300 font-semibold">{{ formatRemaining(totalSeconds) }}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold flex items-center space-x-1"
+                :class="isPaused ? 'bg-amber-950/80 text-amber-300 border border-amber-800/60' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'"
+              >
+                <span class="w-1.5 h-1.5 rounded-full" :class="isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'"></span>
+                <span>{{ isPaused ? '❚❚ PAUSADO' : '● RODANDO' }}</span>
+              </span>
+              <span v-if="isDryRun" class="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-bold">
+                DRY-RUN
               </span>
             </div>
-            <span v-if="isDryRun" class="px-2 py-0.5 rounded text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">
-              MODO TESTE (DRY-RUN)
-            </span>
           </div>
 
-          <!-- Cronômetro Gigante -->
-          <div class="py-1">
-            <div class="text-5xl sm:text-6xl font-black text-cyan-300 tracking-wider">
+          <!-- Cronômetro Digital Centrado -->
+          <div class="py-2 text-center font-mono">
+            <div class="text-5xl sm:text-6xl font-black text-sky-400 tracking-wider drop-shadow-[0_0_25px_rgba(56,189,248,0.25)]">
               {{ formatRemaining(remainingSeconds) }}
             </div>
-            <!-- Horários de Início e Fim (Paridade com Go view.go) -->
-            <div class="text-xs text-slate-400 mt-2 font-mono flex items-center justify-center space-x-3">
+            <div class="text-xs text-slate-400 mt-2 flex items-center justify-center space-x-3">
               <span>Início: <strong class="text-slate-200">{{ startTimeStr }}</strong></span>
               <span class="text-slate-600">•</span>
-              <span>Fim: <strong class="text-cyan-300">{{ finishTimeStr }}</strong></span>
+              <span>Previsão: <strong class="text-cyan-300">{{ finishTimeStr }}</strong></span>
               <span class="text-slate-600">•</span>
               <span>Progresso: <strong class="text-violet-300">{{ progressPercent }}%</strong></span>
             </div>
           </div>
 
-          <!-- Barra de Progresso Gradiente -->
+          <!-- Barra de Progresso com Gradiente -->
           <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
             <div
               class="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-500 to-cyan-400 transition-all duration-500"
@@ -1162,40 +1230,63 @@ const cancelSummaryStats = computed(() => {
             ></div>
           </div>
 
-          <!-- Aviso de cancelamento pendente fiel ao CancelPending do Go -->
+          <!-- Alerta de cancelamento pendente -->
           <div
             v-if="cancelPending"
-            class="p-2.5 rounded-xl bg-rose-950/90 border border-rose-500 text-rose-300 text-xs font-bold animate-pulse shadow-lg shadow-rose-950/50"
+            class="p-2.5 rounded-xl bg-rose-950/90 border border-rose-500 text-rose-300 text-xs font-bold animate-pulse shadow-lg shadow-rose-950/50 text-center font-mono"
           >
-            ⚠ Pressione <kbd class="px-1.5 py-0.5 rounded bg-rose-900 text-white font-mono">c</kbd> novamente para confirmar o cancelamento!
+            ⚠ Pressione <kbd class="px-1.5 py-0.5 rounded bg-rose-900 text-white font-mono">c</kbd> ou <kbd class="px-1.5 py-0.5 rounded bg-rose-900 text-white font-mono">Esc</kbd> novamente para confirmar o cancelamento!
           </div>
 
-          <!-- Histórico de Eventos Recentes (Últimos 5) -->
+          <!-- Histórico de Eventos Timeline Compacta -->
           <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800/80 text-left text-xs font-mono space-y-1">
-            <div class="text-slate-500 font-bold border-b border-slate-800/60 pb-1">LOG DE EVENTOS:</div>
-            <div v-for="(ev, idx) in eventsLog" :key="idx" class="text-slate-400 truncate">
-              {{ ev }}
+            <div class="text-slate-500 font-bold border-b border-slate-800/60 pb-1 text-[11px]">EVENTOS:</div>
+            <div v-for="(ev, idx) in eventsLog" :key="idx" class="text-slate-300 truncate text-[11px] flex items-center space-x-2">
+              <span class="text-slate-600">│</span>
+              <span>{{ ev }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Estado: CONFIRMATION (Tela de Pânico dos Últimos 10s - Zero Bug 00:010) -->
-        <div v-else-if="tuiState === 'CONFIRMATION'" class="w-full max-w-md mx-auto space-y-5 py-6 border-2 border-red-500/70 rounded-2xl bg-red-950/25 p-6 shadow-[0_0_45px_rgba(239,68,68,0.35)] animate-pulse">
-          <div class="text-red-400 font-black text-xl tracking-wider">
-            ATENÇÃO: DESLIGAMENTO IMINENTE!
+        <!-- Estado: CONFIRMATION (Tela de Pânico dos Últimos 10s — Fiel ao viewPanic() do Go) -->
+        <div v-else-if="tuiState === 'CONFIRMATION'" class="w-full max-w-lg mx-auto space-y-4 py-4 px-6 border-2 border-red-500/80 rounded-2xl bg-red-950/30 shadow-[0_0_50px_rgba(239,68,68,0.35)] animate-pulse">
+          <div class="flex items-center justify-between border-b border-red-800/80 pb-2.5 font-mono text-xs">
+            <span class="text-red-400 font-bold flex items-center space-x-1.5">
+              <span>⚠</span>
+              <span>DESLIGAMENTO IMINENTE</span>
+            </span>
+            <span v-if="isDryRun" class="px-2 py-0.5 rounded text-[10px] bg-red-900/60 text-red-200 border border-red-700/60 font-bold">
+              DRY-RUN
+            </span>
           </div>
-          <div class="text-6xl font-black text-red-500 font-mono tracking-widest">
-            {{ formatPanicTime(panicCountdown) }}
+
+          <div class="text-center py-2">
+            <div class="text-red-400 font-mono text-xs sm:text-sm font-bold tracking-wider mb-2">
+              &gt;&gt;&gt; DESLIGANDO EM {{ String(Math.max(0, panicCountdown)).padStart(2, '0') }} SEGUNDOS &lt;&lt;&lt;
+            </div>
+            <div class="text-6xl sm:text-7xl font-black text-red-500 font-mono tracking-widest my-2 drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
+              {{ formatPanicTime(panicCountdown) }}
+            </div>
+            <div class="text-xs text-slate-300 mt-2 font-mono">
+              Salve seus arquivos. O sistema será desligado agora!
+            </div>
           </div>
-          <div class="text-xs text-slate-300 leading-relaxed">
-            Pressione <kbd class="px-2 py-1 rounded bg-red-800 text-white font-bold">c</kbd> ou o botão abaixo para abortar imediatamente.
+
+          <!-- Barra de Progresso Vermelha ASCII idêntica ao Go -->
+          <div class="w-full h-3 bg-red-950/80 rounded-full overflow-hidden p-0.5 border border-red-800/80">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-red-600 to-amber-500 transition-all duration-300"
+              :style="{ width: `${(Math.max(0, panicCountdown) / 10) * 100}%` }"
+            ></div>
           </div>
-          <div class="pt-2">
+
+          <div class="border-t border-red-800/80 pt-3">
             <button
               @click="handleCancel"
-              class="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-red-600/50 cursor-pointer active:scale-95 transition-all"
+              class="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-mono font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-red-600/50 cursor-pointer active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
-              Cancelar Desligamento Agora (c)
+              <kbd class="px-2 py-0.5 rounded bg-red-800 text-white font-bold text-xs border border-red-700">c</kbd>
+              <span>ABORTAR DESLIGAMENTO IMEDIATAMENTE (ou Esc)</span>
             </button>
           </div>
         </div>
@@ -1215,7 +1306,7 @@ const cancelSummaryStats = computed(() => {
    ║                  ✓  FINALIZADO (TESTE)                        ║
    ║                                                               ║
    ╚═══════════════════════════════════════════════════════════════╝</pre>
-          <div class="text-emerald-400 font-bold text-sm">
+          <div class="text-emerald-400 font-bold text-sm font-mono">
             ✓ TESTE DE DESLIGAMENTO CONCLUÍDO COM SUCESSO!
           </div>
           <div class="space-y-1 text-xs text-slate-400 font-mono">
@@ -1299,49 +1390,49 @@ const cancelSummaryStats = computed(() => {
     </div>
 
     <!-- Barra de Ações Rápidas & Atalhos (Contextual e 100% Livre de Botões Mortos) -->
-    <div class="px-3 sm:px-4 py-2.5 bg-slate-900/95 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+    <div class="px-3 sm:px-4 py-2.5 bg-slate-900/95 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 text-xs select-none">
       
       <!-- Se estiver no Shell: Paleta de Iniciação Rápida -->
       <template v-if="mode === 'shell'">
         <div class="flex items-center space-x-2 text-slate-400 font-mono text-xs">
-          <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Atalhos:</span>
+          <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Atalhos Rápidos:</span>
         </div>
         <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
           <button
             @click.stop="runQuickCommand('sleepoff 10s --dry-run')"
-            class="px-3 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold transition-all font-mono text-xs shadow-md shadow-violet-600/30 cursor-pointer flex items-center space-x-1"
+            class="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold transition-all font-mono text-xs shadow-md shadow-violet-600/30 cursor-pointer flex items-center space-x-1 active:scale-95"
             title="Teste rápido de 10 segundos com pânico e alarme"
           >
             <span>⚡ Testar 10s (Dry-Run)</span>
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff')"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono border border-slate-700 transition-colors cursor-pointer"
             title="Abrir Menu Interativo TUI"
           >
             sleepoff (TUI)
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff 15m --dry-run')"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
           >
             15m --dry-run
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff 30m')"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono border border-slate-700 transition-colors cursor-pointer"
           >
             30m
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff --help')"
-            class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
           >
             --help
           </button>
           <button
             @click.stop="runQuickCommand('clear')"
-            class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
           >
             clear
           </button>
@@ -1354,34 +1445,34 @@ const cancelSummaryStats = computed(() => {
           <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider mr-1">Controles:</span>
           <button
             @click.stop="togglePause"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
           >
             <kbd class="font-bold text-violet-400">p</kbd> {{ isPaused ? 'Retomar' : 'Pausar' }}
           </button>
           <button
             @click.stop="addFiveMinutes"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
           >
             <kbd class="font-bold text-cyan-400">+</kbd> +5min
           </button>
           <button
             @click.stop="subtractFiveMinutes"
-            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono"
+            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
           >
             <kbd class="font-bold text-cyan-400">-</kbd> -5min
           </button>
           <button
             @click.stop="handleCancel"
             :class="cancelPending ? 'bg-rose-600 text-white animate-pulse border-rose-400' : 'bg-slate-800 text-rose-300 hover:bg-slate-700 border-slate-700'"
-            class="px-2.5 py-1 rounded-lg transition-colors cursor-pointer border font-mono"
+            class="px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border font-mono text-xs"
           >
-            <kbd class="font-bold" :class="cancelPending ? 'text-white' : 'text-rose-400'">c</kbd> {{ cancelPending ? 'Confirmar Cancelamento' : 'Cancelar' }}
+            <kbd class="font-bold" :class="cancelPending ? 'text-white' : 'text-rose-400'">c</kbd> {{ cancelPending ? 'Confirmar Cancelamento' : 'Cancelar (2x)' }}
           </button>
         </div>
         <div class="flex items-center space-x-2">
           <button
             @click.stop="startPanic(10)"
-            class="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 font-bold transition-all font-mono text-xs cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 font-bold transition-all font-mono text-xs cursor-pointer"
           >
             ⚠️ Simular Pânico (10s)
           </button>
@@ -1391,7 +1482,7 @@ const cancelSummaryStats = computed(() => {
       <!-- Se estiver na tela de pânico: Ação Crítica de Abortar -->
       <template v-else-if="tuiState === 'CONFIRMATION'">
         <div class="flex items-center space-x-2">
-          <span class="text-red-400 font-bold animate-pulse">⚠ PÂNICO: O COMPUTADOR IRÁ DESLIGAR!</span>
+          <span class="text-red-400 font-bold animate-pulse font-mono text-xs">⚠ PÂNICO: O COMPUTADOR IRÁ DESLIGAR!</span>
         </div>
         <div>
           <button
@@ -1411,7 +1502,7 @@ const cancelSummaryStats = computed(() => {
         <div>
           <button
             @click.stop="exitTuiToShell"
-            class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs border border-slate-700 cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs border border-slate-700 cursor-pointer"
           >
             Voltar ao Bash (q)
           </button>
@@ -1426,7 +1517,7 @@ const cancelSummaryStats = computed(() => {
         <div class="flex items-center space-x-2">
           <button
             @click.stop="exitTuiToShell"
-            class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs border border-slate-700 cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs border border-slate-700 cursor-pointer"
           >
             Voltar ao Shell
           </button>
@@ -1435,11 +1526,12 @@ const cancelSummaryStats = computed(() => {
     </div>
 
     <!-- MODO GUIADO: "Aprenda na Prática" (Missões Interativas Clicáveis em Tempo Real) -->
-    <div class="relative z-10 px-3 sm:px-4 py-3 bg-slate-950/90 border-t border-slate-800/60">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Icon name="heroicons:academic-cap" class="w-4 h-4 text-cyan-400" />
-          Aprenda na Prática — Missões Interativas (Clique para testar)
+    <div class="relative z-10 px-3 sm:px-4 py-3 bg-slate-950/90 border-t border-slate-800/80">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+          <Icon name="heroicons:academic-cap" class="w-4 h-4 text-cyan-400 shrink-0" />
+          <span class="truncate">Aprenda na Prática</span>
+          <span class="hidden sm:inline font-normal text-slate-400 truncate">— Missões Clicáveis</span>
         </span>
         <div class="flex items-center space-x-3">
           <div class="w-20 sm:w-32 h-1.5 rounded-full bg-slate-800 overflow-hidden">
@@ -1462,7 +1554,7 @@ const cancelSummaryStats = computed(() => {
             'p-2.5 rounded-xl border text-xs transition-all duration-300 flex items-start space-x-2.5 cursor-pointer',
             mission.completed
               ? 'border-emerald-500/50 bg-emerald-950/30 text-emerald-300 shadow-sm shadow-emerald-900/20'
-              : 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-violet-500/50 hover:bg-slate-900/70'
+              : 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-violet-500/50 hover:bg-slate-900/70 hover:text-slate-200'
           ]"
           :title="mission.completed ? 'Missão concluída!' : 'Clique para executar esta missão'"
         >

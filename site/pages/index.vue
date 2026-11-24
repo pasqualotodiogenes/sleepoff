@@ -11,6 +11,7 @@ import Meteors from '~/components/ui/meteors/Meteors.vue'
 import FlipWords from '~/components/ui/flip-words/FlipWords.vue'
 import BentoGrid from '~/components/ui/bento-grid/BentoGrid.vue'
 import BentoGridItem from '~/components/ui/bento-grid/BentoGridItem.vue'
+import BorderBeam from '~/components/ui/border-beam/BorderBeam.vue'
 import GlareCard from '~/components/ui/glare-card/GlareCard.vue'
 
 // Carregamento sob demanda do emulador (Item 22 do txt.txt - Dividir JavaScript)
@@ -19,6 +20,7 @@ const SleepoffTerminal = defineAsyncComponent(() => import('~/components/Sleepof
 // Estado para abas de instalação com detecção dinâmica do SO do visitante
 const activeOs = ref<'windows' | 'macos' | 'linux'>('linux')
 const copiedCommand = ref<string | null>(null)
+const copiedHero = ref(false)
 
 function detectOs() {
   if (!import.meta.client) return
@@ -46,6 +48,20 @@ function copyToClipboard(text: string, id: string) {
       }
     }, 2000)
   }
+}
+
+function copyQuickHeroCommand() {
+  let cmd = 'curl -fsSL https://git.new/sleepoff.sh | sudo sh'
+  if (activeOs.value === 'windows') {
+    cmd = 'irm https://git.new/sleepoff.ps1 | iex'
+  } else if (activeOs.value === 'macos') {
+    cmd = 'brew install pasqualotodiogenes/tap/sleepoff'
+  }
+  copyToClipboard(cmd, 'hero')
+  copiedHero.value = true
+  setTimeout(() => {
+    copiedHero.value = false
+  }, 2000)
 }
 </script>
 
@@ -106,22 +122,23 @@ function copyToClipboard(text: string, id: string) {
     </header>
 
     <!-- 1. Hero Section -->
-    <section class="relative z-10 pt-16 sm:pt-24 pb-12 px-4 sm:px-6 max-w-5xl mx-auto text-center">
-      <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono text-cyan-400 mb-6 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        <span>Go 1.23 • CGO_ENABLED=0 • 100% Nativo</span>
+    <section class="relative z-10 pt-16 sm:pt-24 pb-14 px-4 sm:px-6 max-w-5xl mx-auto text-center">
+      <!-- Glow Pill Badge -->
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-violet-500/30 text-xs font-mono text-cyan-300 mb-6 shadow-lg shadow-violet-950/40 backdrop-blur-md">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span class="tracking-wide">v1.0.0 Estável • Go 1.25+ • 100% Nativo</span>
       </div>
 
-      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6">
-        Timer de desligamento <br class="hidden sm:inline" />
-        <span class="inline-block">
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-[1.15] [text-wrap:balance]">
+        Timer de desligamento<br class="hidden sm:inline" />
+        <span class="inline-block mt-1 sm:mt-0">
           <ClientOnly>
             <FlipWords
               :words="['inteligente', 'seguro', 'determinístico', 'ultra-leve', 'sem bloat']"
-              class="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent font-extrabold"
+              class="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent font-black"
             />
             <template #fallback>
-              <span class="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent font-extrabold">
+              <span class="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent font-black">
                 inteligente
               </span>
             </template>
@@ -129,11 +146,12 @@ function copyToClipboard(text: string, id: string) {
         </span>
       </h1>
 
-      <p class="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 mb-10 leading-relaxed">
-        Controle o desligamento do computador pelo terminal ou com um clique. TUI com Bubble Tea, tela de pânico com contagem regressiva sonora e single-instance lock nativo.
+      <p class="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 mb-8 leading-relaxed font-normal [text-wrap:pretty]">
+        Controle o desligamento da sua máquina pelo terminal ou com um clique. TUI com Bubble Tea, tela de pânico com contagem regressiva sonora e single-instance lock nativo.
       </p>
 
-      <div class="flex flex-wrap items-center justify-center gap-4">
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
         <a href="#install" aria-label="Baixar Binário / Setup — Ir para seção de instalação">
           <ShimmerButton
             shimmer-color="#c084fc"
@@ -141,7 +159,7 @@ function copyToClipboard(text: string, id: string) {
             shimmer-duration="2.2s"
             background="linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)"
             border-radius="12px"
-            class="font-bold text-sm text-white shadow-xl shadow-violet-600/30 flex items-center space-x-2 cursor-pointer min-h-[44px] px-6"
+            class="font-bold text-sm text-white shadow-xl shadow-violet-600/30 flex items-center space-x-2 cursor-pointer min-h-[46px] px-6"
           >
             <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 mr-1 text-white" />
             <span>Baixar Binário / Setup</span>
@@ -153,7 +171,7 @@ function copyToClipboard(text: string, id: string) {
             text="Experimentar no Terminal"
             dot-color="bg-cyan-400"
             active-text-color="text-slate-950"
-            class="min-h-[44px] px-6 text-sm font-semibold border-cyan-500/30 bg-slate-900/90 text-cyan-300 hover:border-cyan-400"
+            class="min-h-[46px] px-6 text-sm font-semibold border-cyan-500/30 bg-slate-900/90 text-cyan-300 hover:border-cyan-400"
           >
             <template #icon>
               <Icon name="heroicons:command-line" class="w-4 h-4 mr-1 text-cyan-400" />
@@ -163,6 +181,61 @@ function copyToClipboard(text: string, id: string) {
             </template>
           </InteractiveHoverButton>
         </a>
+      </div>
+
+      <!-- Quick Install Multi-OS Command Box -->
+      <div class="max-w-xl mx-auto">
+        <div class="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-slate-700">
+          <!-- OS Tabs Header -->
+          <div class="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-slate-800/80 bg-slate-950/40">
+            <div class="flex items-center space-x-1">
+              <button
+                @click="activeOs = 'windows'"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
+                :class="activeOs === 'windows' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+              >
+                <Icon name="simple-icons:windows" class="w-3.5 h-3.5" />
+                <span>Windows</span>
+              </button>
+              <button
+                @click="activeOs = 'macos'"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
+                :class="activeOs === 'macos' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+              >
+                <Icon name="simple-icons:apple" class="w-3.5 h-3.5" />
+                <span>macOS</span>
+              </button>
+              <button
+                @click="activeOs = 'linux'"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
+                :class="activeOs === 'linux' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+              >
+                <Icon name="simple-icons:linux" class="w-3.5 h-3.5" />
+                <span>Linux</span>
+              </button>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500 hidden sm:inline">1 clique para copiar</span>
+          </div>
+
+          <!-- Command Line and Action -->
+          <div class="p-2 sm:p-2.5 flex items-center justify-between gap-2 text-xs font-mono">
+            <div class="flex items-center space-x-2 px-2.5 py-1.5 text-slate-300 min-w-0 flex-1 overflow-x-auto scrollbar-none">
+              <span class="text-violet-400 font-bold select-none">$</span>
+              <span v-if="activeOs === 'windows'" class="text-cyan-300 select-all whitespace-nowrap">irm https://git.new/sleepoff.ps1 | iex</span>
+              <span v-else-if="activeOs === 'macos'" class="text-cyan-300 select-all whitespace-nowrap">brew install pasqualotodiogenes/tap/sleepoff</span>
+              <span v-else class="text-cyan-300 select-all whitespace-nowrap">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
+            </div>
+            <button
+              @click="copyQuickHeroCommand"
+              class="px-3.5 py-1.5 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 text-violet-200 border border-violet-500/30 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 font-sans font-semibold text-xs min-h-[36px] active:scale-95"
+              title="Copiar comando"
+              aria-label="Copiar comando de instalação rápida"
+            >
+              <Icon :name="copiedHero ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-3.5 h-3.5 text-cyan-400" />
+              <span>{{ copiedHero ? 'Copiado!' : 'Copiar' }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -182,7 +255,7 @@ function copyToClipboard(text: string, id: string) {
           <ClientOnly>
             <SleepoffTerminal />
             <template #fallback>
-              <div class="w-full max-w-5xl mx-auto min-h-[580px] sm:min-h-[600px] rounded-2xl border border-slate-700/70 bg-slate-950/95 overflow-hidden shadow-2xl flex flex-col font-mono text-sm">
+              <div class="w-full max-w-5xl mx-auto min-h-[560px] sm:min-h-[580px] rounded-2xl border border-slate-700/80 bg-slate-950/95 overflow-hidden shadow-2xl flex flex-col font-mono text-sm">
                 <!-- Top bar skeleton -->
                 <div class="h-11 px-4 border-b border-slate-800/90 bg-slate-900/90 flex items-center justify-between">
                   <div class="flex items-center space-x-2">
@@ -197,7 +270,7 @@ function copyToClipboard(text: string, id: string) {
                 <div class="p-6 flex-1 flex flex-col justify-between">
                   <div class="space-y-3">
                     <div class="flex items-center space-x-2">
-                      <span class="text-emerald-400 font-bold text-xs">goddi@sleepoff</span>
+                      <span class="text-emerald-400 font-bold text-xs">user@sleepoff</span>
                       <span class="text-slate-600">:</span>
                       <span class="text-cyan-400 font-bold text-xs">~</span>
                       <span class="text-violet-400 font-bold text-xs mr-1">$</span>
@@ -338,38 +411,30 @@ function copyToClipboard(text: string, id: string) {
       </div>
 
       <!-- Tab macOS -->
-      <div v-else-if="activeOs === 'macos'" class="max-w-2xl mx-auto w-full min-w-0">
-        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="flex items-center space-x-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-              <Icon name="simple-icons:apple" class="w-5 h-5" />
+      <div v-else-if="activeOs === 'macos'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shrink-0">
+                <Icon name="simple-icons:apple" class="w-5 h-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-bold text-white text-base truncate">Homebrew (Tap Oficial)</h3>
+                <p class="text-xs text-slate-400 truncate">Instalação recomendada para macOS</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <h3 class="font-bold text-white text-base truncate">macOS (Apple Silicon & Intel)</h3>
-              <p class="text-xs text-slate-400 truncate">Instale via Homebrew ou binário universal</p>
-            </div>
-          </div>
-          <div class="space-y-3 font-mono text-xs mb-4 min-w-0">
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-cyan-300 min-w-0">
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+              Mantém o binário no PATH e com atualizações automáticas via <code class="text-violet-300 font-mono">brew upgrade</code>.
+            </p>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
               <span class="truncate min-w-0 flex-1">brew install pasqualotodiogenes/tap/sleepoff</span>
               <button
                 @click="copyToClipboard('brew install pasqualotodiogenes/tap/sleepoff', 'brew')"
-                class="ml-2 text-slate-400 hover:text-white cursor-pointer shrink-0 p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                 aria-label="Copiar comando de instalação via Homebrew"
                 title="Copiar comando"
               >
                 <Icon :name="copiedCommand === 'brew' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
-              </button>
-            </div>
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-slate-300 min-w-0">
-              <span class="truncate min-w-0 flex-1">curl -fsSL https://git.new/sleepoff-darwin.sh | sh</span>
-              <button
-                @click="copyToClipboard('curl -fsSL https://git.new/sleepoff-darwin.sh | sh', 'darwin')"
-                class="ml-2 text-slate-400 hover:text-white cursor-pointer shrink-0 p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-                aria-label="Copiar comando de instalação via curl no macOS"
-                title="Copiar comando"
-              >
-                <Icon :name="copiedCommand === 'darwin' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
               </button>
             </div>
           </div>
@@ -384,41 +449,71 @@ function copyToClipboard(text: string, id: string) {
             <span class="truncate">Baixar sleepoff-darwin-universal.tar.gz</span>
           </a>
         </CardSpotlight>
+
+        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                <Icon name="heroicons:command-line" class="w-5 h-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-bold text-white text-base truncate">Script Curl Instantâneo</h3>
+                <p class="text-xs text-slate-400 truncate">Sem gerenciadores de pacotes</p>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+              Baixa o binário compilado nativo para Apple Silicon (M1/M2/M3/M4) ou Intel diretamente para seu terminal.
+            </p>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1">curl -fsSL https://git.new/sleepoff-darwin.sh | sh</span>
+              <button
+                @click="copyToClipboard('curl -fsSL https://git.new/sleepoff-darwin.sh | sh', 'darwin')"
+                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                aria-label="Copiar comando de instalação via curl no macOS"
+                title="Copiar comando"
+              >
+                <Icon :name="copiedCommand === 'darwin' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+              </button>
+            </div>
+          </div>
+          <a
+            href="https://github.com/pasqualotodiogenes/sleepoff/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ver todas as versões do sleepoff no GitHub"
+            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+          >
+            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0" />
+            <span class="truncate">Ver Releases & Checksums</span>
+          </a>
+        </CardSpotlight>
       </div>
 
       <!-- Tab Linux -->
-      <div v-else class="max-w-2xl mx-auto w-full min-w-0">
-        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="flex items-center space-x-3 mb-4">
-            <div class="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shrink-0">
-              <Icon name="simple-icons:linux" class="w-5 h-5" />
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shrink-0">
+                <Icon name="simple-icons:linux" class="w-5 h-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-bold text-white text-base truncate">Script One-Liner Automático</h3>
+                <p class="text-xs text-slate-400 truncate">Detecta arquitetura e instala em /usr/local/bin</p>
+              </div>
             </div>
-            <div class="min-w-0">
-              <h3 class="font-bold text-white text-base truncate">Linux (x86_64 / arm64)</h3>
-              <p class="text-xs text-slate-400 truncate">Compatível com systemd, elogind e init.d</p>
-            </div>
-          </div>
-          <div class="space-y-3 font-mono text-xs mb-4 min-w-0">
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-cyan-300 min-w-0">
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+              Funciona em Ubuntu, Debian, Arch, Fedora, Alpine e openSUSE. Zero dependências dinâmicas requeridas.
+            </p>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
               <span class="truncate min-w-0 flex-1">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
               <button
                 @click="copyToClipboard('curl -fsSL https://git.new/sleepoff.sh | sudo sh', 'linux-sh')"
-                class="ml-2 text-slate-400 hover:text-white cursor-pointer shrink-0 p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                 aria-label="Copiar script de instalação curl no Linux"
                 title="Copiar comando"
               >
                 <Icon :name="copiedCommand === 'linux-sh' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
-              </button>
-            </div>
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-slate-300 min-w-0">
-              <span class="truncate min-w-0 flex-1">go install github.com/pasqualotodiogenes/sleepoff@latest</span>
-              <button
-                @click="copyToClipboard('go install github.com/pasqualotodiogenes/sleepoff@latest', 'go-inst')"
-                class="ml-2 text-slate-400 hover:text-white cursor-pointer shrink-0 p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
-                aria-label="Copiar comando go install"
-                title="Copiar comando"
-              >
-                <Icon :name="copiedCommand === 'go-inst' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
               </button>
             </div>
           </div>
@@ -431,6 +526,44 @@ function copyToClipboard(text: string, id: string) {
           >
             <Icon name="heroicons:archive-box" class="w-4 h-4 text-violet-400 shrink-0" />
             <span class="truncate">Baixar sleepoff-linux-amd64.tar.gz</span>
+          </a>
+        </CardSpotlight>
+
+        <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                <Icon name="heroicons:command-line" class="w-5 h-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-bold text-white text-base truncate">Go Install Toolchain</h3>
+                <p class="text-xs text-slate-400 truncate">Para desenvolvedores e ambientes CI</p>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+              Compilação direta a partir do código fonte verificado com Go 1.25+. Pronto para pipelines e automações.
+            </p>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1">go install github.com/pasqualotodiogenes/sleepoff@latest</span>
+              <button
+                @click="copyToClipboard('go install github.com/pasqualotodiogenes/sleepoff@latest', 'go-inst')"
+                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                aria-label="Copiar comando go install"
+                title="Copiar comando"
+              >
+                <Icon :name="copiedCommand === 'go-inst' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+              </button>
+            </div>
+          </div>
+          <a
+            href="https://github.com/pasqualotodiogenes/sleepoff"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ver repositório do sleepoff no GitHub"
+            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+          >
+            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0" />
+            <span class="truncate">Ver Código-Fonte no GitHub</span>
           </a>
         </CardSpotlight>
       </div>
@@ -451,13 +584,19 @@ function copyToClipboard(text: string, id: string) {
       <BentoGrid class="max-w-5xl">
         <!-- Card 1: Destaque CGO_ENABLED=0 com BorderBeam -->
         <BentoGridItem class="md:col-span-2 relative overflow-hidden bg-slate-900/70 border-slate-800/80 hover:border-violet-500/40">
+          <BorderBeam :size="240" :duration="8" :border-width="1.5" color-from="#7C3AED" color-to="#06B6D4" />
           <template #header>
-            <div class="relative h-44 w-full rounded-xl overflow-hidden bg-gradient-to-br from-violet-950/60 via-slate-900 to-slate-950 border border-slate-800/60 flex items-center justify-center p-4">
-              <div class="font-mono text-center">
-                <div class="inline-block px-3 py-1 rounded bg-violet-900/40 border border-violet-700/50 text-cyan-300 text-xs font-bold mb-2">
-                  CGO_ENABLED=0 go build -ldflags="-s -w"
+            <div class="relative h-44 w-full rounded-xl overflow-hidden bg-gradient-to-br from-violet-950/60 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col items-center justify-center p-4">
+              <div class="font-mono text-center w-full">
+                <div class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-violet-900/50 border border-violet-700/60 text-cyan-300 text-xs font-bold mb-3 shadow-inner max-w-full overflow-x-auto scrollbar-none">
+                  <span class="text-violet-400 select-none">$</span>
+                  <span class="whitespace-nowrap">CGO_ENABLED=0 go build -ldflags="-s -w"</span>
                 </div>
-                <p class="text-[11px] text-slate-400">Zero DLLs externas • Auto-suficiente • Executável instantâneo</p>
+                <div class="flex items-center justify-center flex-wrap gap-2 text-[11px] text-slate-300">
+                  <span class="px-2 py-0.5 rounded bg-slate-950/80 border border-slate-800 text-emerald-400 font-semibold">✓ Zero DLLs</span>
+                  <span class="px-2 py-0.5 rounded bg-slate-950/80 border border-slate-800 text-cyan-400 font-semibold">✓ Boot &lt;10ms</span>
+                  <span class="px-2 py-0.5 rounded bg-slate-950/80 border border-slate-800 text-violet-300 font-semibold">✓ Binário Puro</span>
+                </div>
               </div>
             </div>
           </template>
@@ -471,7 +610,7 @@ function copyToClipboard(text: string, id: string) {
           </template>
           <template #description>
             <span class="text-slate-400 leading-relaxed text-xs">
-              Binário estático Go 1.23 puro sem qualquer amarração de dependências dinâmicas no SO. Portável, determinístico e com inicialização em menos de 10 milissegundos.
+              Binário estático Go 1.25+ puro sem qualquer amarração de dependências dinâmicas no SO. Portável, determinístico e com inicialização instantânea.
             </span>
           </template>
         </BentoGridItem>
@@ -479,16 +618,26 @@ function copyToClipboard(text: string, id: string) {
         <!-- Card 2: Single-Instance Lock -->
         <BentoGridItem class="md:col-span-1 bg-slate-900/70 border-slate-800/80 hover:border-cyan-500/40">
           <template #header>
-            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-3.5 text-left font-mono text-[11px] space-y-1.5 overflow-hidden">
-              <div class="flex items-center space-x-1.5 text-cyan-400 font-bold mb-1">
-                <Icon name="heroicons:lock-closed" class="w-4 h-4" />
-                <span>Mutex / flock Atômico</span>
-              </div>
-              <div class="text-slate-400 truncate">WIN: <span class="text-slate-200">CreateMutexW("sleepoff_lock")</span></div>
-              <div class="text-slate-400 truncate">UNIX: <span class="text-slate-200">flock(fd, LOCK_EX|LOCK_NB)</span></div>
-              <div class="text-emerald-400 pt-1.5 flex items-center space-x-1.5 border-t border-slate-800/80">
+            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-4 text-left font-mono text-xs space-y-2.5 overflow-hidden">
+              <div class="flex items-center justify-between text-cyan-400 font-bold">
+                <div class="flex items-center space-x-1.5">
+                  <Icon name="heroicons:lock-closed" class="w-4 h-4" />
+                  <span>Mutex / flock Atômico</span>
+                </div>
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-[10px]">Prevenção de processos duplicados</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800/80 text-[11px] space-y-1.5">
+                <div class="text-slate-400 flex items-center justify-between">
+                  <span>Win32:</span>
+                  <span class="text-cyan-300 font-semibold">CreateMutexW()</span>
+                </div>
+                <div class="text-slate-400 flex items-center justify-between">
+                  <span>POSIX:</span>
+                  <span class="text-indigo-300 font-semibold">flock(LOCK_EX)</span>
+                </div>
+              </div>
+              <div class="text-emerald-400 flex items-center space-x-1.5 text-[10px]">
+                <span>● Prevenção de processos concorrentes</span>
               </div>
             </div>
           </template>
@@ -510,16 +659,27 @@ function copyToClipboard(text: string, id: string) {
         <!-- Card 3: Modo Simulação Seguro -->
         <BentoGridItem class="md:col-span-1 bg-slate-900/70 border-slate-800/80 hover:border-emerald-500/40">
           <template #header>
-            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-3.5 text-left font-mono text-[11px] space-y-1.5 overflow-hidden">
-              <div class="flex items-center space-x-1.5 text-emerald-400 font-bold mb-1">
-                <Icon name="heroicons:shield-check" class="w-4 h-4" />
-                <span>Interceptador de Hardware</span>
+            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-4 text-left font-mono text-xs space-y-2.5 overflow-hidden">
+              <div class="flex items-center justify-between text-emerald-400 font-bold">
+                <div class="flex items-center space-x-1.5">
+                  <Icon name="heroicons:shield-check" class="w-4 h-4" />
+                  <span>Interceptador de Hardware</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold">SEGURO</span>
               </div>
-              <div class="text-slate-400">FLAG: <span class="text-cyan-300 font-bold">--dry-run</span></div>
-              <div class="text-slate-400">SYSCALL: <span class="text-rose-400 line-through">InitiateShutdown</span></div>
-              <div class="text-emerald-400 pt-1.5 flex items-center space-x-1.5 border-t border-slate-800/80">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-[10px]">100% Simulado (Zero risco)</span>
+              <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800/80 text-[11px] space-y-1.5">
+                <div class="text-slate-400 flex items-center justify-between">
+                  <span>Flag CLI:</span>
+                  <span class="text-cyan-300 font-bold">--dry-run, -d</span>
+                </div>
+                <div class="text-slate-400 flex items-center justify-between">
+                  <span>PowerOff:</span>
+                  <span class="text-rose-400 line-through">Syscall</span>
+                  <span class="text-emerald-400 font-bold">✓ Simulado</span>
+                </div>
+              </div>
+              <div class="text-emerald-400 flex items-center space-x-1.5 text-[10px]">
+                <span>● Zero risco de desligamento real</span>
               </div>
             </div>
           </template>
@@ -541,20 +701,20 @@ function copyToClipboard(text: string, id: string) {
         <!-- Card 4: Terminal UI Nativa (Bubble Tea) -->
         <BentoGridItem class="md:col-span-2 bg-slate-900/70 border-slate-800/80 hover:border-violet-500/40">
           <template #header>
-            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-violet-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-4">
-              <div class="flex items-center justify-between text-xs font-mono text-cyan-300 mb-3">
-                <span class="px-2.5 py-1 rounded bg-slate-950 border border-violet-800/50 text-violet-300 font-bold">Init()</span>
-                <span class="text-slate-400 font-bold">➔</span>
-                <span class="px-2.5 py-1 rounded bg-slate-950 border border-cyan-800/50 text-cyan-300 font-bold">Update(Msg)</span>
-                <span class="text-slate-400 font-bold">➔</span>
-                <span class="px-2.5 py-1 rounded bg-slate-950 border border-indigo-800/50 text-indigo-300 font-bold">View()</span>
+            <div class="h-44 w-full rounded-xl bg-gradient-to-br from-violet-950/40 via-slate-900 to-slate-950 border border-slate-800/60 flex flex-col justify-center p-4 font-mono">
+              <div class="flex items-center justify-center space-x-2 text-xs text-cyan-300 mb-3">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-violet-800/60 text-violet-300 font-bold shadow-sm">Init()</span>
+                <span class="text-slate-500 font-bold select-none">➔</span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-cyan-800/60 text-cyan-300 font-bold shadow-sm">Update(Msg)</span>
+                <span class="text-slate-500 font-bold select-none">➔</span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-950 border border-indigo-800/60 text-indigo-300 font-bold shadow-sm">View()</span>
               </div>
-              <div class="flex items-center justify-center space-x-2 text-[11px] font-mono text-slate-400">
-                <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">Alt Screen Buffer</span>
-                <span>•</span>
-                <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">ANSI 256 Cores</span>
-                <span>•</span>
-                <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">Restauração Limpa</span>
+              <div class="flex items-center justify-center flex-wrap gap-2 text-[11px] text-slate-400">
+                <span class="px-2 py-0.5 rounded bg-slate-900/80 border border-slate-800">Alt Screen Buffer</span>
+                <span class="text-slate-600">•</span>
+                <span class="px-2 py-0.5 rounded bg-slate-900/80 border border-slate-800">ANSI 256 Cores</span>
+                <span class="text-slate-600">•</span>
+                <span class="px-2 py-0.5 rounded bg-slate-900/80 border border-slate-800">Restauração de Cursor</span>
               </div>
             </div>
           </template>
