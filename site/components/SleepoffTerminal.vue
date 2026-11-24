@@ -35,7 +35,7 @@ const isTerminalFocused = ref(false)
 const shellHistory = ref<Array<{ cmd?: string; output?: string; type?: 'input' | 'output' | 'error' }>>([
   {
     type: 'output',
-    output: 'sleepoff CLI v1.0.0 (Go 1.25+, CGO_ENABLED=0, 100% Nativo)\nLinux 6.11 x86_64 • TUI Charm Bubble Tea • Single-Instance Mutex\nDigite `sleepoff` para o menu TUI, `10s -d` para teste rápido, ou `--help`.'
+    output: 'sleepoff CLI v1.0.0 (Go 1.25+, CGO_ENABLED=0, 100% Nativo)\nLinux 6.11 x86_64 • TUI Charm Bubble Tea • Single-Instance Mutex\n💡 Dica de Onboarding: Clique na "Missão 1: Iniciar Timer" abaixo para testar a TUI interativa na prática.'
   }
 ])
 const historyIndex = ref(-1)
@@ -1400,79 +1400,90 @@ const cancelSummaryStats = computed(() => {
         <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
           <button
             @click.stop="runQuickCommand('sleepoff 10s --dry-run')"
-            class="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-bold transition-all font-mono text-xs shadow-md shadow-violet-600/30 cursor-pointer flex items-center space-x-1 active:scale-95"
-            title="Teste rápido de 10 segundos com pânico e alarme"
+            class="px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-white font-bold transition-all font-mono text-xs cursor-pointer flex items-center space-x-1.5 active:scale-95 border border-violet-500/40 min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            title="Iniciar contagem de teste (10s) com tela de pânico e alarme"
+            aria-label="Executar sleepoff 10 segundos dry-run"
           >
-            <span>⚡ Testar 10s (Dry-Run)</span>
+            <span>▶ 10s --dry-run</span>
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff')"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono border border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
             title="Abrir Menu Interativo TUI"
+            aria-label="Abrir Menu TUI"
           >
             sleepoff (TUI)
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff 15m --dry-run')"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Executar sleepoff 15 minutos em modo seguro"
           >
-            15m --dry-run
+            15m -d
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff 30m')"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Executar sleepoff 30 minutos"
           >
             30m
           </button>
           <button
             @click.stop="runQuickCommand('sleepoff --help')"
-            class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Exibir ajuda do comando sleepoff"
           >
             --help
           </button>
           <button
             @click.stop="runQuickCommand('clear')"
-            class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-mono border border-slate-700 transition-colors cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Limpar histórico do terminal"
           >
             clear
           </button>
         </div>
       </template>
 
-      <!-- Se estiver no TUI Rodando: Controles Ativos do Timer -->
+      <!-- Se estiver no TUI Rodando: Controles Ativos do Timer (Conforto Touch Mobile min-h 42px) -->
       <template v-else-if="tuiState === 'RUNNING'">
-        <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+        <div class="flex items-center flex-wrap gap-2">
           <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider mr-1">Controles:</span>
           <button
             @click.stop="togglePause"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
+            class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 active:scale-95"
+            aria-label="Pausar ou retomar contagem regressiva"
           >
-            <kbd class="font-bold text-violet-400">p</kbd> {{ isPaused ? 'Retomar' : 'Pausar' }}
+            <kbd class="font-bold text-violet-400 px-1 py-0.5 rounded bg-slate-900 border border-slate-700">p</kbd> {{ isPaused ? 'Retomar' : 'Pausar' }}
           </button>
           <button
             @click.stop="addFiveMinutes"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
+            class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 active:scale-95"
+            aria-label="Adicionar 5 minutos ao timer"
           >
-            <kbd class="font-bold text-cyan-400">+</kbd> +5min
+            <kbd class="font-bold text-slate-300 px-1 py-0.5 rounded bg-slate-900 border border-slate-700">+</kbd> +5min
           </button>
           <button
             @click.stop="subtractFiveMinutes"
-            class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs"
+            class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer border border-slate-700 font-mono text-xs min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 active:scale-95"
+            aria-label="Subtrair 5 minutos do timer"
           >
-            <kbd class="font-bold text-cyan-400">-</kbd> -5min
+            <kbd class="font-bold text-slate-300 px-1 py-0.5 rounded bg-slate-900 border border-slate-700">-</kbd> -5min
           </button>
           <button
             @click.stop="handleCancel"
             :class="cancelPending ? 'bg-rose-600 text-white animate-pulse border-rose-400' : 'bg-slate-800 text-rose-300 hover:bg-slate-700 border-slate-700'"
-            class="px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border font-mono text-xs"
+            class="px-3 py-2 rounded-lg transition-colors cursor-pointer border font-mono text-xs min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 active:scale-95"
+            aria-label="Cancelar timer ativo (exige 2 toques)"
           >
-            <kbd class="font-bold" :class="cancelPending ? 'text-white' : 'text-rose-400'">c</kbd> {{ cancelPending ? 'Confirmar Cancelamento' : 'Cancelar (2x)' }}
+            <kbd class="font-bold px-1 py-0.5 rounded bg-slate-900 border border-slate-700" :class="cancelPending ? 'text-white' : 'text-rose-400'">c</kbd> {{ cancelPending ? 'Confirmar Cancelamento' : 'Cancelar (2x)' }}
           </button>
         </div>
         <div class="flex items-center space-x-2">
           <button
             @click.stop="startPanic(10)"
-            class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 font-bold transition-all font-mono text-xs cursor-pointer"
+            class="px-3.5 py-2 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 font-bold transition-all font-mono text-xs cursor-pointer min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 active:scale-95"
+            aria-label="Simular contagem regressiva crítica de pânico com áudio"
           >
             ⚠️ Simular Pânico (10s)
           </button>
@@ -1482,12 +1493,13 @@ const cancelSummaryStats = computed(() => {
       <!-- Se estiver na tela de pânico: Ação Crítica de Abortar -->
       <template v-else-if="tuiState === 'CONFIRMATION'">
         <div class="flex items-center space-x-2">
-          <span class="text-red-400 font-bold animate-pulse font-mono text-xs">⚠ PÂNICO: O COMPUTADOR IRÁ DESLIGAR!</span>
+          <span class="text-rose-400 font-bold animate-pulse font-mono text-xs">⚠ PÂNICO: O COMPUTADOR IRÁ DESLIGAR!</span>
         </div>
         <div>
           <button
             @click.stop="handleCancel"
-            class="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-all font-mono text-xs shadow-md shadow-red-600/40 cursor-pointer"
+            class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold transition-all font-mono text-xs shadow-md shadow-rose-600/40 cursor-pointer min-h-[42px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 active:scale-95"
+            aria-label="Abortar desligamento imediatamente"
           >
             [c] Abortar Desligamento Imediato
           </button>
@@ -1502,7 +1514,8 @@ const cancelSummaryStats = computed(() => {
         <div>
           <button
             @click.stop="exitTuiToShell"
-            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs border border-slate-700 cursor-pointer"
+            class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs border border-slate-700 cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Voltar para a linha de comando do bash"
           >
             Voltar ao Bash (q)
           </button>
@@ -1517,7 +1530,8 @@ const cancelSummaryStats = computed(() => {
         <div class="flex items-center space-x-2">
           <button
             @click.stop="exitTuiToShell"
-            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs border border-slate-700 cursor-pointer"
+            class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs border border-slate-700 cursor-pointer min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            aria-label="Voltar ao prompt do terminal"
           >
             Voltar ao Shell
           </button>
@@ -1526,15 +1540,15 @@ const cancelSummaryStats = computed(() => {
     </div>
 
     <!-- MODO GUIADO: "Aprenda na Prática" (Missões Interativas Clicáveis em Tempo Real) -->
-    <div class="relative z-10 px-3 sm:px-4 py-3 bg-slate-950/90 border-t border-slate-800/80">
+    <div class="relative z-10 px-3 sm:px-4 py-3 bg-slate-950/90 border-t border-slate-800/80" role="region" aria-label="Missões Interativas do Sleepoff">
       <div class="flex items-center justify-between mb-2.5">
-        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5 min-w-0">
-          <Icon name="heroicons:academic-cap" class="w-4 h-4 text-cyan-400 shrink-0" />
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+          <Icon name="heroicons:academic-cap" class="w-4 h-4 text-violet-400 shrink-0" />
           <span class="truncate">Aprenda na Prática</span>
           <span class="hidden sm:inline font-normal text-slate-400 truncate">— Missões Clicáveis</span>
         </span>
         <div class="flex items-center space-x-3">
-          <div class="w-20 sm:w-32 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+          <div class="w-20 sm:w-32 h-1.5 rounded-full bg-slate-800 overflow-hidden" role="progressbar" :aria-valuenow="missions.filter(m => m.completed).length" aria-valuemin="0" :aria-valuemax="missions.length">
             <div
               class="h-full bg-gradient-to-r from-violet-500 to-emerald-400 transition-all duration-500 rounded-full"
               :style="{ width: `${(missions.filter(m => m.completed).length / missions.length) * 100}%` }"
@@ -1550,13 +1564,19 @@ const cancelSummaryStats = computed(() => {
           v-for="mission in missions"
           :key="mission.id"
           @click="clickMission(mission)"
+          role="button"
+          tabindex="0"
+          @keydown.enter.space="clickMission(mission)"
           :class="[
-            'p-2.5 rounded-xl border text-xs transition-all duration-300 flex items-start space-x-2.5 cursor-pointer',
+            'p-2.5 rounded-xl border text-xs transition-all duration-300 flex items-start space-x-2.5 cursor-pointer relative min-h-[46px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400',
             mission.completed
-              ? 'border-emerald-500/50 bg-emerald-950/30 text-emerald-300 shadow-sm shadow-emerald-900/20'
-              : 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-violet-500/50 hover:bg-slate-900/70 hover:text-slate-200'
+              ? 'border-emerald-500/50 bg-emerald-950/25 text-emerald-300 shadow-sm'
+              : mission.id === 'start'
+                ? 'border-violet-500/70 bg-violet-950/25 text-violet-200 ring-1 ring-violet-500/30 shadow-sm'
+                : 'border-slate-800/80 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:bg-slate-900/70 hover:text-slate-200'
           ]"
           :title="mission.completed ? 'Missão concluída!' : 'Clique para executar esta missão'"
+          :aria-label="`${mission.title} - ${mission.completed ? 'Concluída' : 'Pendente'}`"
         >
           <div class="shrink-0 mt-0.5">
             <span
@@ -1567,19 +1587,26 @@ const cancelSummaryStats = computed(() => {
             </span>
             <span
               v-else
-              class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-800 text-slate-500 border border-slate-700"
+              class="inline-flex items-center justify-center w-4 h-4 rounded-full"
+              :class="mission.id === 'start' ? 'bg-violet-600/30 text-violet-300 border border-violet-500/40' : 'bg-slate-800 text-slate-500 border border-slate-700'"
             >
-              <span class="w-1.5 h-1.5 rounded-full bg-slate-500" />
+              <span class="w-1.5 h-1.5 rounded-full" :class="mission.id === 'start' ? 'bg-violet-400 animate-ping' : 'bg-slate-500'" />
             </span>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between">
-              <span class="font-bold truncate" :class="mission.completed ? 'text-emerald-300' : 'text-slate-200'">{{ mission.title }}</span>
+            <div class="flex items-center justify-between gap-1">
+              <span class="font-bold truncate text-[11px] sm:text-xs" :class="mission.completed ? 'text-emerald-300' : 'text-slate-200'">{{ mission.title }}</span>
               <span
                 v-if="mission.completed"
                 class="ml-1 text-[9px] uppercase px-1.5 py-0.2 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700/60 font-mono shrink-0"
               >
                 Feito
+              </span>
+              <span
+                v-else-if="mission.id === 'start'"
+                class="ml-1 text-[9px] uppercase px-1.5 py-0.2 rounded bg-violet-600/40 text-violet-200 border border-violet-500/50 font-mono shrink-0 animate-pulse hidden sm:inline"
+              >
+                Início
               </span>
             </div>
             <div class="text-[10px] text-slate-400 line-clamp-2 leading-tight mt-0.5">{{ mission.desc }}</div>

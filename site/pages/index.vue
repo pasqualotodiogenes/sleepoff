@@ -123,9 +123,9 @@ function copyQuickHeroCommand() {
 
     <!-- 1. Hero Section -->
     <section class="relative z-10 pt-16 sm:pt-24 pb-14 px-4 sm:px-6 max-w-5xl mx-auto text-center">
-      <!-- Glow Pill Badge -->
-      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-violet-500/30 text-xs font-mono text-cyan-300 mb-6 shadow-lg shadow-violet-950/40 backdrop-blur-md">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+      <!-- Badge de Versão Soberba (Sem verde semântico prematuro) -->
+      <div class="inline-flex items-center space-x-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] sm:text-xs font-mono text-slate-300 mb-6 shadow-sm backdrop-blur-md whitespace-nowrap">
+        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-violet-400 animate-pulse shrink-0"></span>
         <span class="tracking-wide">v1.0.0 Estável • Go 1.25+ • 100% Nativo</span>
       </div>
 
@@ -150,88 +150,91 @@ function copyQuickHeroCommand() {
         Controle o desligamento da sua máquina pelo terminal ou com um clique. TUI com Bubble Tea, tela de pânico com contagem regressiva sonora e single-instance lock nativo.
       </p>
 
-      <!-- Action Buttons -->
+      <!-- Action Buttons: CTA Principal com maior peso visual -->
       <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
-        <a href="#install" aria-label="Baixar Binário / Setup — Ir para seção de instalação">
+        <a href="#install" aria-label="Baixar Binário / Setup — Ir para seção de instalação" class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded-xl">
           <ShimmerButton
             shimmer-color="#c084fc"
             shimmer-size="0.08em"
             shimmer-duration="2.2s"
             background="linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)"
             border-radius="12px"
-            class="font-bold text-sm text-white shadow-xl shadow-violet-600/30 flex items-center space-x-2 cursor-pointer min-h-[46px] px-6"
+            class="font-bold text-sm text-white shadow-xl shadow-violet-600/35 flex items-center space-x-2 cursor-pointer min-h-[46px] px-6 transition-transform active:scale-95"
           >
             <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 mr-1 text-white" />
             <span>Baixar Binário / Setup</span>
           </ShimmerButton>
         </a>
 
-        <a href="#demo" aria-label="Experimentar no Terminal — Ir para emulador interativo">
-          <InteractiveHoverButton
-            text="Experimentar no Terminal"
-            dot-color="bg-cyan-400"
-            active-text-color="text-slate-950"
-            class="min-h-[46px] px-6 text-sm font-semibold border-cyan-500/30 bg-slate-900/90 text-cyan-300 hover:border-cyan-400"
+        <a href="#demo" aria-label="Experimentar no Terminal — Ir para emulador interativo" class="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded-xl">
+          <div
+            class="min-h-[46px] px-6 text-sm font-semibold rounded-xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 hover:text-white hover:border-slate-600 transition-all flex items-center space-x-2 cursor-pointer shadow-sm"
           >
-            <template #icon>
-              <Icon name="heroicons:command-line" class="w-4 h-4 mr-1 text-cyan-400" />
-            </template>
-            <template #active-icon>
-              <Icon name="heroicons:command-line" class="w-4 h-4 mr-1 text-slate-950" />
-            </template>
-          </InteractiveHoverButton>
+            <Icon name="heroicons:command-line" class="w-4 h-4 mr-1 text-slate-400 group-hover:text-slate-200" />
+            <span>Experimentar no Terminal</span>
+          </div>
         </a>
       </div>
 
-      <!-- Quick Install Multi-OS Command Box -->
+      <!-- Quick Install Multi-OS Command Box (Contido e Sóbrio) -->
       <div class="max-w-xl mx-auto">
-        <div class="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-slate-700">
+        <div class="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-slate-700">
           <!-- OS Tabs Header -->
-          <div class="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-slate-800/80 bg-slate-950/40">
+          <div class="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-slate-800/80 bg-slate-950/50" role="tablist" aria-label="Sistemas Operacionais para Instalação Rápida">
             <div class="flex items-center space-x-1">
               <button
                 @click="activeOs = 'windows'"
-                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
-                :class="activeOs === 'windows' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+                role="tab"
+                :aria-selected="activeOs === 'windows'"
+                aria-label="Ver comando para Windows"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="activeOs === 'windows' ? 'bg-slate-800 text-white border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
               >
                 <Icon name="simple-icons:windows" class="w-3.5 h-3.5" />
                 <span>Windows</span>
               </button>
               <button
                 @click="activeOs = 'macos'"
-                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
-                :class="activeOs === 'macos' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+                role="tab"
+                :aria-selected="activeOs === 'macos'"
+                aria-label="Ver comando para macOS"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="activeOs === 'macos' ? 'bg-slate-800 text-white border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
               >
                 <Icon name="simple-icons:apple" class="w-3.5 h-3.5" />
                 <span>macOS</span>
               </button>
               <button
                 @click="activeOs = 'linux'"
-                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer"
-                :class="activeOs === 'linux' ? 'bg-violet-600/30 text-cyan-300 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
+                role="tab"
+                :aria-selected="activeOs === 'linux'"
+                aria-label="Ver comando para Linux"
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center space-x-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="activeOs === 'linux' ? 'bg-slate-800 text-white border border-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'"
               >
                 <Icon name="simple-icons:linux" class="w-3.5 h-3.5" />
                 <span>Linux</span>
               </button>
             </div>
-            <span class="text-[10px] font-mono text-slate-500 hidden sm:inline">1 clique para copiar</span>
+            <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">1 clique para copiar</span>
           </div>
 
           <!-- Command Line and Action -->
           <div class="p-2 sm:p-2.5 flex items-center justify-between gap-2 text-xs font-mono">
             <div class="flex items-center space-x-2 px-2.5 py-1.5 text-slate-300 min-w-0 flex-1 overflow-x-auto scrollbar-none">
-              <span class="text-violet-400 font-bold select-none">$</span>
-              <span v-if="activeOs === 'windows'" class="text-cyan-300 select-all whitespace-nowrap">irm https://git.new/sleepoff.ps1 | iex</span>
-              <span v-else-if="activeOs === 'macos'" class="text-cyan-300 select-all whitespace-nowrap">brew install pasqualotodiogenes/tap/sleepoff</span>
-              <span v-else class="text-cyan-300 select-all whitespace-nowrap">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
+              <span class="text-slate-500 font-bold select-none">$</span>
+              <span v-if="activeOs === 'windows'" class="text-slate-200 select-all whitespace-nowrap">irm https://git.new/sleepoff.ps1 | iex</span>
+              <span v-else-if="activeOs === 'macos'" class="text-slate-200 select-all whitespace-nowrap">brew install pasqualotodiogenes/tap/sleepoff</span>
+              <span v-else class="text-slate-200 select-all whitespace-nowrap">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
             </div>
             <button
               @click="copyQuickHeroCommand"
-              class="px-3.5 py-1.5 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 text-violet-200 border border-violet-500/30 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 font-sans font-semibold text-xs min-h-[36px] active:scale-95"
+              class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center space-x-1.5 cursor-pointer shrink-0 font-sans font-semibold text-xs min-h-[36px] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+              :class="copiedHero ? 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30' : ''"
               title="Copiar comando"
               aria-label="Copiar comando de instalação rápida"
             >
-              <Icon :name="copiedHero ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-3.5 h-3.5 text-cyan-400" />
+              <Icon :name="copiedHero ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-3.5 h-3.5" :class="copiedHero ? 'text-emerald-400' : 'text-slate-400'" />
               <span>{{ copiedHero ? 'Copiado!' : 'Copiar' }}</span>
             </button>
           </div>
@@ -385,15 +388,17 @@ function copyQuickHeroCommand() {
                 <p class="text-xs text-slate-400 truncate">Instalação rápida via terminal</p>
               </div>
             </div>
-            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
-              <span class="truncate min-w-0 flex-1">irm https://git.new/sleepoff.ps1 | iex</span>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-200 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1 text-cyan-300">irm https://git.new/sleepoff.ps1 | iex</span>
               <button
                 @click="copyToClipboard('irm https://git.new/sleepoff.ps1 | iex', 'ps')"
-                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-300 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="copiedCommand === 'ps' ? 'text-emerald-400' : ''"
                 aria-label="Copiar comando de instalação do PowerShell"
                 title="Copiar comando"
               >
-                <Icon :name="copiedCommand === 'ps' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+                <Icon :name="copiedCommand === 'ps' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4" />
+                <span v-if="copiedCommand === 'ps'" class="ml-1 text-[11px] font-sans font-semibold text-emerald-400">Copiado!</span>
               </button>
             </div>
           </div>
@@ -426,15 +431,17 @@ function copyQuickHeroCommand() {
             <p class="text-xs text-slate-300 leading-relaxed mb-4">
               Mantém o binário no PATH e com atualizações automáticas via <code class="text-violet-300 font-mono">brew upgrade</code>.
             </p>
-            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
-              <span class="truncate min-w-0 flex-1">brew install pasqualotodiogenes/tap/sleepoff</span>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-200 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1 text-cyan-300">brew install pasqualotodiogenes/tap/sleepoff</span>
               <button
                 @click="copyToClipboard('brew install pasqualotodiogenes/tap/sleepoff', 'brew')"
-                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-300 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="copiedCommand === 'brew' ? 'text-emerald-400' : ''"
                 aria-label="Copiar comando de instalação via Homebrew"
                 title="Copiar comando"
               >
-                <Icon :name="copiedCommand === 'brew' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+                <Icon :name="copiedCommand === 'brew' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4" />
+                <span v-if="copiedCommand === 'brew'" class="ml-1 text-[11px] font-sans font-semibold text-emerald-400">Copiado!</span>
               </button>
             </div>
           </div>
@@ -443,9 +450,9 @@ function copyQuickHeroCommand() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Baixar sleepoff-darwin-universal.tar.gz para macOS"
-            class="w-full text-center py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700/60 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
           >
-            <Icon name="heroicons:archive-box" class="w-4 h-4 text-cyan-400 shrink-0" />
+            <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 text-white shrink-0" />
             <span class="truncate">Baixar sleepoff-darwin-universal.tar.gz</span>
           </a>
         </CardSpotlight>
@@ -453,7 +460,7 @@ function copyQuickHeroCommand() {
         <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
           <div>
             <div class="flex items-center space-x-3 mb-4">
-              <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
                 <Icon name="heroicons:command-line" class="w-5 h-5" />
               </div>
               <div class="min-w-0">
@@ -464,15 +471,17 @@ function copyQuickHeroCommand() {
             <p class="text-xs text-slate-300 leading-relaxed mb-4">
               Baixa o binário compilado nativo para Apple Silicon (M1/M2/M3/M4) ou Intel diretamente para seu terminal.
             </p>
-            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
-              <span class="truncate min-w-0 flex-1">curl -fsSL https://git.new/sleepoff-darwin.sh | sh</span>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-200 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1 text-cyan-300">curl -fsSL https://git.new/sleepoff-darwin.sh | sh</span>
               <button
                 @click="copyToClipboard('curl -fsSL https://git.new/sleepoff-darwin.sh | sh', 'darwin')"
-                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-300 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="copiedCommand === 'darwin' ? 'text-emerald-400' : ''"
                 aria-label="Copiar comando de instalação via curl no macOS"
                 title="Copiar comando"
               >
-                <Icon :name="copiedCommand === 'darwin' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+                <Icon :name="copiedCommand === 'darwin' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4" />
+                <span v-if="copiedCommand === 'darwin'" class="ml-1 text-[11px] font-sans font-semibold text-emerald-400">Copiado!</span>
               </button>
             </div>
           </div>
@@ -481,9 +490,9 @@ function copyQuickHeroCommand() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Ver todas as versões do sleepoff no GitHub"
-            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+            class="w-full text-center py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700/60 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
-            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0" />
+            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0 text-slate-400" />
             <span class="truncate">Ver Releases & Checksums</span>
           </a>
         </CardSpotlight>
@@ -505,15 +514,17 @@ function copyQuickHeroCommand() {
             <p class="text-xs text-slate-300 leading-relaxed mb-4">
               Funciona em Ubuntu, Debian, Arch, Fedora, Alpine e openSUSE. Zero dependências dinâmicas requeridas.
             </p>
-            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
-              <span class="truncate min-w-0 flex-1">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-200 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1 text-cyan-300">curl -fsSL https://git.new/sleepoff.sh | sudo sh</span>
               <button
                 @click="copyToClipboard('curl -fsSL https://git.new/sleepoff.sh | sudo sh', 'linux-sh')"
-                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-300 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="copiedCommand === 'linux-sh' ? 'text-emerald-400' : ''"
                 aria-label="Copiar script de instalação curl no Linux"
                 title="Copiar comando"
               >
-                <Icon :name="copiedCommand === 'linux-sh' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+                <Icon :name="copiedCommand === 'linux-sh' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4" />
+                <span v-if="copiedCommand === 'linux-sh'" class="ml-1 text-[11px] font-sans font-semibold text-emerald-400">Copiado!</span>
               </button>
             </div>
           </div>
@@ -522,9 +533,9 @@ function copyQuickHeroCommand() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Baixar sleepoff-linux-amd64.tar.gz para Linux"
-            class="w-full text-center py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700/60 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
           >
-            <Icon name="heroicons:archive-box" class="w-4 h-4 text-violet-400 shrink-0" />
+            <Icon name="heroicons:arrow-down-tray" class="w-4 h-4 text-white shrink-0" />
             <span class="truncate">Baixar sleepoff-linux-amd64.tar.gz</span>
           </a>
         </CardSpotlight>
@@ -532,7 +543,7 @@ function copyQuickHeroCommand() {
         <CardSpotlight class="w-full min-w-0 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
           <div>
             <div class="flex items-center space-x-3 mb-4">
-              <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
                 <Icon name="heroicons:command-line" class="w-5 h-5" />
               </div>
               <div class="min-w-0">
@@ -543,15 +554,17 @@ function copyQuickHeroCommand() {
             <p class="text-xs text-slate-300 leading-relaxed mb-4">
               Compilação direta a partir do código fonte verificado com Go 1.25+. Pronto para pipelines e automações.
             </p>
-            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 mb-4 flex items-center justify-between min-w-0">
-              <span class="truncate min-w-0 flex-1">go install github.com/pasqualotodiogenes/sleepoff@latest</span>
+            <div class="relative bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-200 mb-4 flex items-center justify-between min-w-0">
+              <span class="truncate min-w-0 flex-1 text-cyan-300">go install github.com/pasqualotodiogenes/sleepoff@latest</span>
               <button
                 @click="copyToClipboard('go install github.com/pasqualotodiogenes/sleepoff@latest', 'go-inst')"
-                class="ml-2 text-slate-400 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                class="ml-2 text-slate-300 hover:text-white shrink-0 cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                :class="copiedCommand === 'go-inst' ? 'text-emerald-400' : ''"
                 aria-label="Copiar comando go install"
                 title="Copiar comando"
               >
-                <Icon :name="copiedCommand === 'go-inst' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4 text-cyan-400" />
+                <Icon :name="copiedCommand === 'go-inst' ? 'heroicons:check' : 'heroicons:clipboard-document'" class="w-4 h-4" />
+                <span v-if="copiedCommand === 'go-inst'" class="ml-1 text-[11px] font-sans font-semibold text-emerald-400">Copiado!</span>
               </button>
             </div>
           </div>
@@ -560,9 +573,9 @@ function copyQuickHeroCommand() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Ver repositório do sleepoff no GitHub"
-            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg shadow-violet-600/30 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+            class="w-full text-center py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 hover:text-white text-xs font-bold transition-all border border-slate-700/60 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98] min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
-            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0" />
+            <Icon name="simple-icons:github" class="w-4 h-4 shrink-0 text-slate-400" />
             <span class="truncate">Ver Código-Fonte no GitHub</span>
           </a>
         </CardSpotlight>
