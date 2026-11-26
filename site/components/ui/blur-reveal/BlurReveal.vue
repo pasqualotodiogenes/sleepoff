@@ -1,72 +1,83 @@
 <script setup lang="ts">
 import { Motion } from "motion-v";
-import { onMounted, ref, useSlots, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 interface Props {
   duration?: number;
   delay?: number;
   blur?: string;
   yOffset?: number;
+  once?: boolean;
   class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  duration: 1,
-  delay: 2,
-  blur: "20px",
-  yOffset: 20,
+  duration: 0.45,
+  delay: 0.05,
+  blur: "8px",
+  yOffset: 12,
+  once: true,
+  class: "",
 });
 
-const container = ref(null);
-const childElements = ref([]);
-const slots = useSlots();
+const prefersReducedMotion = ref(false);
+let mediaQuery: MediaQueryList | null = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const children = ref<any>([]);
+function handleMotionChange(e: MediaQueryListEvent) {
+  prefersReducedMotion.value = e.matches;
+}
 
 onMounted(() => {
-  // This will reactively capture all content provided in the default slot
-  watchEffect(() => {
-    children.value = slots.default ? slots.default() : [];
-  });
+  mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  prefersReducedMotion.value = mediaQuery.matches;
+  mediaQuery.addEventListener("change", handleMotionChange);
 });
 
-function getInitial() {
+onUnmounted(() => {
+  if (mediaQuery) {
+    mediaQuery.removeEventListener("change", handleMotionChange);
+  }
+});
+
+const initialState = computed(() => {
+  if (prefersReducedMotion.value) {
+    return false as const;
+  }
   return {
     opacity: 0,
     filter: `blur(${props.blur})`,
     y: props.yOffset,
   };
-}
+});
 
-function getAnimate() {
+const animateState = computed(() => ({
+  opacity: 1,
+  filter: "blur(0px)",
+  y: 0,
+}));
+
+const transitionConfig = computed(() => {
+  if (prefersReducedMotion.value) {
+    return { duration: 0, delay: 0 };
+  }
   return {
-    opacity: 1,
-    filter: `blur(0px)`,
-    y: 0,
+    duration: props.duration,
+    delay: props.delay,
+    ease: "easeOut",
   };
-}
+});
 </script>
 
 <template>
-  <div
-    ref="container"
-    :class="props.class"
-  >
+  <div :class="props.class">
     <Motion
-      v-for="(child, index) in children"
-      :key="index"
-      ref="childElements"
       as="div"
-      :initial="getInitial()"
-      :while-in-view="getAnimate()"
-      :transition="{
-        duration: props.duration,
-        easing: 'easeInOut',
-        delay: props.delay * index,
-      }"
+      :initial="initialState"
+      :while-in-view="animateState"
+      :in-view-options="{ once: props.once }"
+      :transition="transitionConfig"
     >
-      <component :is="child" />
+      <slot />
     </Motion>
   </div>
 </template>

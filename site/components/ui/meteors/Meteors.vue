@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { computed } from "vue";
 import { cn } from "@inspira-ui/plugins";
+import { computed } from "vue";
+
 interface Props {
   count?: number;
   number?: number;
@@ -14,21 +15,33 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const meteorCount = computed(() => props.number ?? props.count ?? 20);
+
+function deterministicOffset(index: number): number {
+  return ((index * 137) % 800) - 400;
+}
+
+function deterministicDelay(index: number): string {
+  return `${(0.2 + ((index * 19) % 60) / 100).toFixed(2)}s`;
+}
+
+function deterministicDuration(index: number): string {
+  return `${2 + ((index * 3) % 8)}s`;
+}
 </script>
 
 <template>
   <span
     v-for="index in meteorCount"
-    :key="`meteor ${index}`"
+    :key="`meteor-${index}`"
     :style="{
       top: 0,
-      left: `${Math.floor(Math.random() * (400 - -400) + -400)}px`,
-      animationDelay: `${Math.random() * (0.8 - 0.2) + 0.2}s`,
-      animationDuration: `${Math.floor(Math.random() * (10 - 2) + 2)}s`,
+      left: `${deterministicOffset(index)}px`,
+      animationDelay: deterministicDelay(index),
+      animationDuration: deterministicDuration(index),
     }"
     :class="
       cn(
-        `animate-meteor absolute h-0.5 w-0.5 rotate-45 rounded-[9999px] bg-slate-400 shadow-[0_0_0_1px_#ffffff10] before:absolute before:top-1/2 before:h-px before:w-[50px] before:-translate-y-[50%] before:transform before:bg-gradient-to-r before:from-violet-400 before:to-transparent before:content-['']`,
+        `animate-meteor absolute h-0.5 w-0.5 rotate-45 rounded-none bg-[#c3c3cc] before:absolute before:top-1/2 before:h-px before:w-[50px] before:-translate-y-[50%] before:transform before:bg-gradient-to-r before:from-[#5266eb] before:to-transparent before:content-['']`,
         $props.class,
       )
     "

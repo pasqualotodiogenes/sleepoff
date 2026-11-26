@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
 import { cn } from "@inspira-ui/plugins";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -14,16 +14,26 @@ const props = withDefaults(
   {
     class: "",
     slotClass: "",
-    gradientSize: 200,
-    gradientColor: "#262626",
-    gradientOpacity: 0.8,
+    gradientSize: 220,
+    gradientColor: "#5266eb",
+    gradientOpacity: 0.14,
   },
 );
 
 const mouseX = ref(-props.gradientSize * 10);
 const mouseY = ref(-props.gradientSize * 10);
+const canHover = ref(false);
+let hoverQuery: MediaQueryList | null = null;
+
+function handleHoverChange(e: MediaQueryListEvent) {
+  canHover.value = e.matches;
+  if (!e.matches) {
+    handleMouseLeave();
+  }
+}
 
 function handleMouseMove(e: MouseEvent) {
+  if (!canHover.value) return;
   const target = e.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
   mouseX.value = e.clientX - rect.left;
@@ -36,13 +46,22 @@ function handleMouseLeave() {
 }
 
 onMounted(() => {
+  hoverQuery = window.matchMedia("(hover: hover)");
+  canHover.value = hoverQuery.matches;
+  hoverQuery.addEventListener("change", handleHoverChange);
   mouseX.value = -props.gradientSize * 10;
   mouseY.value = -props.gradientSize * 10;
 });
 
+onUnmounted(() => {
+  if (hoverQuery) {
+    hoverQuery.removeEventListener("change", handleHoverChange);
+  }
+});
+
 const backgroundStyle = computed(() => {
   return `radial-gradient(
-    circle at ${mouseX.value}px ${mouseY.value}px,
+    ${props.gradientSize}px circle at ${mouseX.value}px ${mouseY.value}px,
     ${props.gradientColor} 0%,
     rgba(0, 0, 0, 0) 70%
   )`;
@@ -53,7 +72,7 @@ const backgroundStyle = computed(() => {
   <div
     :class="
       cn(
-        `group relative flex size-full w-full min-w-0 overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white`,
+        `spotlight-card group relative flex size-full w-full min-w-0 overflow-hidden rounded-none border border-[#1e1e2a] bg-[#0e1016] text-[#ededf3]`,
         $props.class,
       )
     "
@@ -64,11 +83,21 @@ const backgroundStyle = computed(() => {
       <slot />
     </div>
     <div
-      class="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+      v-if="canHover"
+      class="spotlight-overlay pointer-events-none absolute inset-0 rounded-none opacity-0 transition-opacity duration-300"
       :style="{
         background: backgroundStyle,
-        opacity: gradientOpacity,
+        '--spotlight-opacity': gradientOpacity,
       }"
+      aria-hidden="true"
     />
   </div>
 </template>
+
+<style scoped>
+@media (hover: hover) {
+  .spotlight-card:hover .spotlight-overlay {
+    opacity: var(--spotlight-opacity, 0.14);
+  }
+}
+</style>

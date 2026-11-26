@@ -11,17 +11,17 @@ export default defineNuxtConfig({
         lang: 'pt-BR',
         class: 'dark'
       },
-      title: 'sleepoff — Sleep Timer Inteligente para Windows e Multiplataforma',
+      title: 'sleepoff — Desligamento Programado como App ou Terminal',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'CLI moderno, ultra-leve e seguro para agendar o desligamento do seu PC. Zero bloat, modo dry-run e proteção contra travamentos.' },
-        { name: 'theme-color', content: '#0f172a' }
+        { name: 'description', content: 'Programe o desligamento do seu computador como aplicativo instalável (Windows com bandeja do sistema e atalhos) ou pelo terminal em Windows, Linux e macOS. Modo --dry-run, trava única e alarme de 10s.' },
+        { name: 'theme-color', content: '#06070a' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap' },
         { rel: 'icon', type: 'image/svg+xml', href: (process.env.NUXT_APP_BASE_URL || '/sleepoff/').replace(/\/$/, '') + '/favicon.svg' }
       ]
     }

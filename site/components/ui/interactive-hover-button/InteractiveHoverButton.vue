@@ -11,8 +11,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   text: "Button",
-  dotColor: "bg-cyan-500",
-  activeTextColor: "text-slate-950",
+  dotColor: "bg-[#5266eb]",
+  activeTextColor: "text-[#ededf3]",
 });
 
 const buttonRef = ref<HTMLButtonElement>();
@@ -23,34 +23,34 @@ const buttonRef = ref<HTMLButtonElement>();
     ref="buttonRef"
     :class="
       cn(
-        `group relative w-auto cursor-pointer overflow-hidden rounded-xl border border-slate-700/80 bg-slate-900/90 py-2.5 px-6 text-center font-semibold text-slate-200 transition-all duration-300 hover:border-cyan-500/60 hover:shadow-lg hover:shadow-cyan-950/40 min-h-[44px] flex items-center justify-center`,
+        `ihb-root group relative flex min-h-[44px] w-auto cursor-pointer items-center justify-center overflow-hidden rounded-none border border-[#272735] bg-[#0e1016] px-6 py-2.5 text-center font-semibold text-[#ededf3] transition-colors duration-200`,
         props.class,
       )
     "
   >
-    <!-- Dot expanding background on hover -->
+    <!-- Cobalt tactical block/dot expanding only on hover-capable devices -->
     <div class="flex items-center gap-2.5">
       <div
         :class="
           cn(
-            `size-2 scale-100 rounded-full transition-all duration-500 ease-out group-hover:scale-[120]`,
+            `ihb-dot size-2 scale-100 rounded-none transition-all duration-300 ease-out`,
             props.dotColor,
           )
         "
       />
       <span
-        class="inline-flex items-center gap-2 whitespace-nowrap transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0"
+        class="ihb-idle inline-flex items-center gap-2 whitespace-nowrap transition-all duration-200"
       >
         <slot name="icon" />
         {{ text }}
       </span>
     </div>
 
-    <!-- Active content revealed on hover -->
+    <!-- Active content revealed on hover-capable devices -->
     <div
       :class="
         cn(
-          `absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 font-bold opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100`,
+          `ihb-active pointer-events-none absolute inset-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 font-semibold opacity-0 transition-all duration-200`,
           props.activeTextColor,
         )
       "
@@ -59,15 +59,16 @@ const buttonRef = ref<HTMLButtonElement>();
       <span class="whitespace-nowrap">{{ text }}</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="transition-transform duration-300 group-hover:translate-x-1"
+        stroke-width="2"
+        stroke-linecap="square"
+        stroke-linejoin="miter"
+        class="ihb-arrow transition-transform duration-200"
+        aria-hidden="true"
       >
         <path d="M5 12h14" />
         <path d="m12 5 7 7-7 7" />
@@ -76,5 +77,24 @@ const buttonRef = ref<HTMLButtonElement>();
   </button>
 </template>
 
-<style scoped></style>
-
+<style scoped>
+@media (hover: hover) {
+  .ihb-root:hover {
+    border-color: #5266eb;
+  }
+  .ihb-root:hover .ihb-dot {
+    transform: scale(120);
+  }
+  .ihb-root:hover .ihb-idle {
+    transform: translateX(3rem);
+    opacity: 0;
+  }
+  .ihb-root:hover .ihb-active {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  .ihb-root:hover .ihb-arrow {
+    transform: translateX(0.25rem);
+  }
+}
+</style>
